@@ -27,12 +27,21 @@
 		</style>
 	</head>
 	<body>
-		<script src="mkch.js" type="text/javascript"></script>
 		<script type="text/javascript">
+			let g_mkch_wi;
+			async function load_wasm()
+			{
+				const mkch_fp = fetch("mkch.wasm");
+				const mkch_wp = WebAssembly.instantiateStreaming(mkch_fp, {});
+				const mkch_w = await mkch_wp;
+				const mkch_wm = mkch_w.module;
+				const mkch_wi = mkch_w.instance;
+				g_mkch_wi = mkch_wi;
+			}
 			function compute(id, xof_len, str)
 			{
 				const mem_start_offset = 0;
-				const mem_start_len = 4;
+				const mem_start_len = 512 * 1024;
 				const mem_data_offset = mem_start_offset + mem_start_len;
 				const mem_data_len = 1 * 1024 * 1024;
 				const mem_digest_offset = mem_data_offset + mem_data_len;
@@ -43,15 +52,15 @@
 				{
 					return false;
 				}
-				const data_buf = new Uint8Array(Module.HEAPU8.buffer, mem_data_offset, mem_data_len);
-				const digest_buf = new Uint8Array(Module.HEAPU8.buffer, mem_digest_offset, mem_digest_len);
-				const ret_len_buf = new Uint8Array(Module.HEAPU8.buffer, mem_ret_len_offset, mem_ret_len_len);
+				const data_buf = new Uint8Array(g_mkch_wi.exports.memory.buffer, mem_data_offset, mem_data_len);
+				const digest_buf = new Uint8Array(g_mkch_wi.exports.memory.buffer, mem_digest_offset, mem_digest_len);
+				const ret_len_buf = new Uint8Array(g_mkch_wi.exports.memory.buffer, mem_ret_len_offset, mem_ret_len_len);
 				for(let i = 0; i != str.length; ++i)
 				{
 					const code = str.charCodeAt(i);
 					data_buf[i] = code & 0xff;
 				}
-				const r = Module._mkch(id, xof_len, mem_data_offset, str.length, mem_digest_offset, mem_digest_len, mem_ret_len_offset);
+				const r = g_mkch_wi.exports.mkch(id, xof_len, mem_data_offset, str.length, mem_digest_offset, mem_digest_len, mem_ret_len_offset);
 				if(r == 0)
 				{
 					return false;
@@ -112,6 +121,7 @@
 				}
 				return false;
 			}
+			load_wasm();
 		</script>
 		<span>hash</span>
 		<br>
