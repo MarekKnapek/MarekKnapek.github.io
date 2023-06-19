@@ -32,9 +32,8 @@
 			async function load_wasm()
 			{
 				const mkch_fp = fetch("mkch.wasm");
-				const mkch_wp = WebAssembly.instantiateStreaming(mkch_fp, {});
+				const mkch_wp = WebAssembly.instantiateStreaming(mkch_fp);
 				const mkch_w = await mkch_wp;
-				const mkch_wm = mkch_w.module;
 				const mkch_wi = mkch_w.instance;
 				g_mkch_wi = mkch_wi;
 			}
