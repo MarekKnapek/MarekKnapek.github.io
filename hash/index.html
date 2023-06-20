@@ -37,39 +37,40 @@
 				const mkch_wi = mkch_w.instance;
 				g_mkch_wi = mkch_wi;
 			}
-			function compute(id, xof_len, data, data_len)
+			function compute(alg_name, alg_name_len, xof_len, data, data_len)
 			{
 				const mem_start_offset = 0;
 				const mem_start_len = 512 * 1024;
 				const mem_data_offset = mem_start_offset + mem_start_len;
 				const mem_data_len = 1 * 1024 * 1024;
-				const mem_digest_offset = mem_data_offset + mem_data_len;
+				const mem_alg_name_offset = mem_data_offset + mem_data_len;
+				const mem_alg_name_len = 0xff;
+				const mem_digest_offset = mem_alg_name_offset + mem_alg_name_len;
 				const mem_digest_len = 16 * 1024;
-				const mem_ret_len_offset = mem_digest_offset + mem_digest_len;
-				const mem_ret_len_len = 4;
-				if(!(data_len <= mem_data_len))
+				if(!(alg_name_len >= 1 && alg_name_len <= mem_alg_name_len))
 				{
 					return false;
 				}
-				const buf_data = new Uint8Array(g_mkch_wi.exports.memory.buffer, mem_data_offset, mem_data_len);
-				const buf_digest = new Uint8Array(g_mkch_wi.exports.memory.buffer, mem_digest_offset, mem_digest_len);
-				const buf_ret_len = new Uint8Array(g_mkch_wi.exports.memory.buffer, mem_ret_len_offset, mem_ret_len_len);
-				buf_data.set(new Uint8Array(data.buffer, 0, data_len));
-				const r = g_mkch_wi.exports.mkch(id, xof_len, mem_data_offset, data_len, mem_digest_offset, mem_digest_len, mem_ret_len_offset);
-				if(r == 0)
+				if(!(data_len >= 0 && data_len <= mem_data_len))
+				{
+					return false;
+				}
+				const mem_data_buff = new Uint8Array(g_mkch_wi.exports.memory.buffer, mem_data_offset, mem_data_len);
+				const mem_alg_name_buff = new Uint8Array(g_mkch_wi.exports.memory.buffer, mem_alg_name_offset, mem_alg_name_len);
+				const mem_digest_buff = new Uint8Array(g_mkch_wi.exports.memory.buffer, mem_digest_offset, mem_digest_len);
+				mem_data_buff.set(new Uint8Array(data.buffer, 0, data_len));
+				mem_alg_name_buff.set(new Uint8Array(alg_name.buffer, 0, alg_name_len));
+				const mkch_ret = g_mkch_wi.exports.mkch(mem_alg_name_offset, alg_name_len, xof_len, mem_data_offset, data_len, mem_digest_offset, mem_digest_len);
+				if(mkch_ret == 0)
 				{
 					return false;
 				}
 				const alphabet = "0123456789abcdef";
-				const n =
-					((buf_ret_len[0] & 0xff) << (0 * 8)) |
-					((buf_ret_len[1] & 0xff) << (1 * 8)) |
-					((buf_ret_len[2] & 0xff) << (2 * 8)) |
-					((buf_ret_len[3] & 0xff) << (3 * 8));
+				const n = mkch_ret;
 				const digest_str = new Uint8Array(n * 2);
 				for(let i = 0; i != n; ++i)
 				{
-					const b = buf_digest[i] & 0xff;
+					const b = mem_digest_buff[i] & 0xff;
 					const hi = (b >> 4) & 0xf;
 					const lo = (b >> 0) & 0xf;
 					digest_str[i * 2 + 0] = alphabet.codePointAt(hi);
@@ -83,7 +84,9 @@
 				const data = new Uint8Array(text.length * 3);
 				const data_len = new TextEncoder().encodeInto(text, data).written;
 				const alge = document.getElementById("alg");
-				const is_shake = alge.value == "xofshake128" || alge.value == "xofshake256";
+				const alg_name = new Uint8Array(0xff);
+				const alg_name_len = new TextEncoder().encodeInto(alge.value, alg_name).written;
+				const is_shake = alge.value == "shake_128" || alge.value == "shake_256";
 				document.getElementById("lengthl").hidden = !is_shake;
 				document.getElementById("length").hidden = !is_shake;
 				const xof_len_base = 64;
@@ -104,7 +107,7 @@
 					xof_len = xof_len_base;
 					hash_name = hash_name_base;
 				}
-				const computed = compute(alge.selectedIndex, xof_len, data, data_len);
+				const computed = compute(alg_name, alg_name_len, xof_len, data, data_len);
 				if(computed == false)
 				{
 					document.getElementById("resulto").hidden = true;
@@ -133,26 +136,29 @@
 			<br>
 			<label for="alg">algorithm:</label>
 			<select id="alg" onchange="form_onsubmit()">
-				<option value="hashmd2">MD2</option>
-				<option value="hashmd4">MD4</option>
-				<option value="hashmd5">MD5</option>
-				<option value="hashsha0">SHA-0</option>
-				<option value="hashsha1" selected>SHA-1</option>
-				<option value="hashsha2224">SHA-224</option>
-				<option value="hashsha2256">SHA-256</option>
-				<option value="hashsha2384">SHA-384</option>
-				<option value="hashsha2512">SHA-512</option>
-				<option value="hashsha2512224">SHA-512/224</option>
-				<option value="hashsha2512256">SHA-512/256</option>
-				<option value="hashsha3224">SHA3-224</option>
-				<option value="hashsha3256">SHA3-256</option>
-				<option value="hashsha3384">SHA3-384</option>
-				<option value="hashsha3512">SHA3-512</option>
-				<option value="hashtiger128">Tiger/128</option>
-				<option value="hashtiger160">Tiger/160</option>
-				<option value="hashtiger192">Tiger/192</option>
-				<option value="xofshake128">SHAKE128</option>
-				<option value="xofshake256">SHAKE256</option>
+				<option value="md2">MD2</option>
+				<option value="md4">MD4</option>
+				<option value="md5">MD5</option>
+				<option value="sha0">SHA-0</option>
+				<option value="sha1" selected>SHA-1</option>
+				<option value="sha2_224">SHA-224</option>
+				<option value="sha2_256">SHA-256</option>
+				<option value="sha2_384">SHA-384</option>
+				<option value="sha2_512">SHA-512</option>
+				<option value="sha2_512_224">SHA-512/224</option>
+				<option value="sha2_512_256">SHA-512/256</option>
+				<option value="sha3_224">SHA3-224</option>
+				<option value="sha3_256">SHA3-256</option>
+				<option value="sha3_384">SHA3-384</option>
+				<option value="sha3_512">SHA3-512</option>
+				<option value="shake_128">SHAKE128</option>
+				<option value="shake_256">SHAKE256</option>
+				<option value="tiger_128">Tiger/128</option>
+				<option value="tiger_160">Tiger/160</option>
+				<option value="tiger_192">Tiger/192</option>
+				<option value="tiger2_128">Tiger2/128</option>
+				<option value="tiger2_160">Tiger2/160</option>
+				<option value="tiger2_192">Tiger2/192</option>
 			</select>
 			<br>
 			<br>
