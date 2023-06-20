@@ -37,7 +37,7 @@
 				const mkch_wi = mkch_w.instance;
 				g_mkch_wi = mkch_wi;
 			}
-			function compute(id, xof_len, str)
+			function compute(id, xof_len, data, data_len)
 			{
 				const mem_start_offset = 0;
 				const mem_start_len = 512 * 1024;
@@ -47,19 +47,15 @@
 				const mem_digest_len = 16 * 1024;
 				const mem_ret_len_offset = mem_digest_offset + mem_digest_len;
 				const mem_ret_len_len = 4;
-				if(!(str.length <= mem_data_len))
+				if(!(data_len <= mem_data_len))
 				{
 					return false;
 				}
 				const data_buf = new Uint8Array(g_mkch_wi.exports.memory.buffer, mem_data_offset, mem_data_len);
 				const digest_buf = new Uint8Array(g_mkch_wi.exports.memory.buffer, mem_digest_offset, mem_digest_len);
 				const ret_len_buf = new Uint8Array(g_mkch_wi.exports.memory.buffer, mem_ret_len_offset, mem_ret_len_len);
-				for(let i = 0; i != str.length; ++i)
-				{
-					const code = str.charCodeAt(i);
-					data_buf[i] = code & 0xff;
-				}
-				const r = g_mkch_wi.exports.mkch(id, xof_len, mem_data_offset, str.length, mem_digest_offset, mem_digest_len, mem_ret_len_offset);
+				data_buf.set(new Uint8Array(data.buffer, 0, data_len));
+				const r = g_mkch_wi.exports.mkch(id, xof_len, mem_data_offset, data_len, mem_digest_offset, mem_digest_len, mem_ret_len_offset);
 				if(r == 0)
 				{
 					return false;
@@ -70,21 +66,22 @@
 					((ret_len_buf[1] & 0xff) << (1 * 8)) |
 					((ret_len_buf[2] & 0xff) << (2 * 8)) |
 					((ret_len_buf[3] & 0xff) << (3 * 8));
-				let ret = new String("");
+				const digest_str = new Uint8Array(n * 2);
 				for(let i = 0; i != n; ++i)
 				{
 					const b = digest_buf[i] & 0xff;
 					const hi = (b >> 4) & 0xf;
 					const lo = (b >> 0) & 0xf;
-					ret += alphabet[hi];
-					ret += alphabet[lo];
+					digest_str[i * 2 + 0] = alphabet.codePointAt(hi);
+					digest_str[i * 2 + 1] = alphabet.codePointAt(lo);
 				}
-				return ret;
+				return new TextDecoder().decode(digest_str);
 			}
 			function form_onsubmit()
 			{
 				const text = document.getElementById("text").value;
-				const text_utf8 = unescape(encodeURIComponent(text));
+				const data = new Uint8Array(text.length * 3);
+				const data_len = new TextEncoder().encodeInto(text, data).written;
 				const alge = document.getElementById("alg");
 				const is_shake = alge.value == "shake128" || alge.value == "shake256";
 				document.getElementById("lengthl").hidden = !is_shake;
@@ -107,7 +104,7 @@
 					xof_len = xof_len_base;
 					hash_name = hash_name_base;
 				}
-				const computed = compute(alge.selectedIndex, xof_len, text_utf8);
+				const computed = compute(alge.selectedIndex, xof_len, data, data_len);
 				if(computed == false)
 				{
 					document.getElementById("resulto").hidden = true;
