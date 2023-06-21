@@ -51,6 +51,10 @@
 				{
 					return false;
 				}
+				if(!(xof_len >= 1 && xof_len <= 16 * 1024))
+				{
+					return false;
+				}
 				if(!(data_len >= 0 && data_len <= mem_data_len))
 				{
 					return false;
@@ -62,6 +66,10 @@
 				mem_alg_name_buff.set(new Uint8Array(alg_name.buffer, 0, alg_name_len));
 				const mkch_ret = g_mkch_wi.exports.mkch(mem_alg_name_offset, alg_name_len, xof_len, mem_data_offset, data_len, mem_digest_offset, mem_digest_len);
 				if(mkch_ret == 0)
+				{
+					return false;
+				}
+				if(!(mkch_ret >= 1 && mkch_ret <= 16 * 1024))
 				{
 					return false;
 				}
