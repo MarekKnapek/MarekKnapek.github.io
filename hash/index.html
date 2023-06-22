@@ -27,123 +27,25 @@
 		</style>
 	</head>
 	<body>
-		<script type="text/javascript">
-			let g_mkch_wi;
-			async function load_wasm()
-			{
-				const mkch_fp = fetch("mkch.wasm");
-				const mkch_wp = WebAssembly.instantiateStreaming(mkch_fp);
-				const mkch_w = await mkch_wp;
-				const mkch_wi = mkch_w.instance;
-				g_mkch_wi = mkch_wi;
-			}
-			function compute(alg_name, alg_name_len, xof_len, data, data_len)
-			{
-				const mem_start_offset = 0;
-				const mem_start_len = 512 * 1024;
-				const mem_data_offset = mem_start_offset + mem_start_len;
-				const mem_data_len = 1 * 1024 * 1024;
-				const mem_alg_name_offset = mem_data_offset + mem_data_len;
-				const mem_alg_name_len = 0xff;
-				const mem_digest_offset = mem_alg_name_offset + mem_alg_name_len;
-				const mem_digest_len = 16 * 1024;
-				if(!(alg_name_len >= 1 && alg_name_len <= mem_alg_name_len))
-				{
-					return false;
-				}
-				if(!(xof_len >= 1 && xof_len <= 16 * 1024))
-				{
-					return false;
-				}
-				if(!(data_len >= 0 && data_len <= mem_data_len))
-				{
-					return false;
-				}
-				const mem_data_buff = new Uint8Array(g_mkch_wi.exports.memory.buffer, mem_data_offset, mem_data_len);
-				const mem_alg_name_buff = new Uint8Array(g_mkch_wi.exports.memory.buffer, mem_alg_name_offset, mem_alg_name_len);
-				const mem_digest_buff = new Uint8Array(g_mkch_wi.exports.memory.buffer, mem_digest_offset, mem_digest_len);
-				mem_data_buff.set(new Uint8Array(data.buffer, 0, data_len));
-				mem_alg_name_buff.set(new Uint8Array(alg_name.buffer, 0, alg_name_len));
-				const mkch_ret = g_mkch_wi.exports.mkch(mem_alg_name_offset, alg_name_len, xof_len, mem_data_offset, data_len, mem_digest_offset, mem_digest_len);
-				if(mkch_ret == 0)
-				{
-					return false;
-				}
-				if(!(mkch_ret >= 1 && mkch_ret <= 16 * 1024))
-				{
-					return false;
-				}
-				const alphabet = "0123456789abcdef";
-				const n = mkch_ret;
-				const digest_str = new Uint8Array(n * 2);
-				for(let i = 0; i != n; ++i)
-				{
-					const b = mem_digest_buff[i] & 0xff;
-					const hi = (b >> 4) & 0xf;
-					const lo = (b >> 0) & 0xf;
-					digest_str[i * 2 + 0] = alphabet.codePointAt(hi);
-					digest_str[i * 2 + 1] = alphabet.codePointAt(lo);
-				}
-				return new TextDecoder().decode(digest_str);
-			}
-			function form_onsubmit()
-			{
-				const text = document.getElementById("text").value;
-				const data = new Uint8Array(text.length * 3);
-				const data_len = new TextEncoder().encodeInto(text, data).written;
-				const alge = document.getElementById("alg");
-				const alg_name = new Uint8Array(0xff);
-				const alg_name_len = new TextEncoder().encodeInto(alge.value, alg_name).written;
-				const is_shake = alge.value == "shake_128" || alge.value == "shake_256";
-				document.getElementById("lengthl").hidden = !is_shake;
-				document.getElementById("length").hidden = !is_shake;
-				const xof_len_base = 64;
-				const hash_name_base = alge.options[alge.selectedIndex].textContent;
-				let xof_len;
-				let hash_name;
-				if(is_shake)
-				{
-					xof_len = document.getElementById("length").value;
-					xof_len = parseInt(xof_len, 10);
-					xof_len = Number.isNaN(xof_len) ? xof_len_base : xof_len;
-					xof_len = xof_len <= 0 ? xof_len_base : xof_len;
-					xof_len = xof_len > 16 * 1024 ? xof_len_base : xof_len;
-					hash_name = hash_name_base + "(" + (xof_len * 8) + ")";
-				}
-				else
-				{
-					xof_len = xof_len_base;
-					hash_name = hash_name_base;
-				}
-				const computed = compute(alg_name, alg_name_len, xof_len, data, data_len);
-				if(computed == false)
-				{
-					document.getElementById("resulto").hidden = true;
-				}
-				else
-				{
-					document.getElementById("resulta").textContent = hash_name;
-					document.getElementById("resultb").textContent = computed;
-					document.getElementById("resulto").hidden = false;
-				}
-				return false;
-			}
-			load_wasm();
-		</script>
+		<script type="text/javascript" src="mkch.js"></script>
 		<span>hash</span>
 		<br>
 		<br>
 		<a href="..">back</a>
 		<br>
 		<br>
-		<form onsubmit="return form_onsubmit()">
+		<form onsubmit="return mkch_pub_form_onsubmit()">
 			<label for="text">text:</label>
 			<br>
-			<textarea id="text" cols="60" rows="5" oninput="form_onsubmit()" placeholder="insert text here"></textarea>
+			<textarea id="text" cols="60" rows="5" oninput="mkch_pub_text_oninput()" placeholder="insert text here"></textarea>
+			<br>
+			<br>
+			<label for="file">or select file:</label>
+			<input id="file" type="file" onchange="mkch_pub_file_onchange()">
 			<br>
 			<br>
 			<label for="alg">algorithm:</label>
-			<select id="alg" onchange="form_onsubmit()">
+			<select id="alg" onchange="mkch_pub_alg_onchange()">
 				<option value="md2">MD2</option>
 				<option value="md4">MD4</option>
 				<option value="md5">MD5</option>
@@ -171,10 +73,9 @@
 			<br>
 			<br>
 			<label id="lengthl" for="length" hidden>length:</label>
-			<input id="length" type="number" min="1" max="16384" step="1" value="64" hidden onchange="form_onsubmit()">
+			<input id="length" type="number" min="1" max="16384" step="1" value="64" hidden onchange="mkch_pub_length_onchange()">
 			<br>
 			<br>
-			<input type="submit" value="compute">
 		</form>
 		<br>
 		<br>
