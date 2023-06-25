@@ -3,13 +3,47 @@
 let g_mkch_wi;
 let g_file_state;
 
-async function mkch_pub_load_wasm()
+function mkch_pri_populate_select()
+{
+	const alg_name_addr = g_mkch_wi.exports.mkch_get_alg_name_addr();
+	const alg_name_size = g_mkch_wi.exports.mkch_get_alg_name_size();
+	const alg_count = g_mkch_wi.exports.mkch_get_alg_count();
+	if(alg_count == 0)
+	{
+		return;
+	}
+	const select = document.getElementById("alg");
+	for(let i = 0; i != alg_count; ++i)
+	{
+		const alg_name_len = g_mkch_wi.exports.mkch_get_alg_name(i);
+		if(alg_name_len == 0)
+		{
+			return;
+		}
+		const alg_name = new TextDecoder().decode(new Uint8Array(g_mkch_wi.exports.memory.buffer, alg_name_addr, alg_name_len));
+		const alg_pretty_name_len = g_mkch_wi.exports.mkch_get_alg_pretty_name(i);
+		if(alg_pretty_name_len == 0)
+		{
+			return;
+		}
+		const alg_pretty_name = new TextDecoder().decode(new Uint8Array(g_mkch_wi.exports.memory.buffer, alg_name_addr, alg_pretty_name_len));
+		const option = new Option(alg_pretty_name, alg_name);
+		select.add(option, undefined);
+	}
+}
+
+function mkch_pri_on_wasm_loaded_single(mkch_wm)
+{
+	const mkch_wi = mkch_wm.instance;
+	g_mkch_wi = mkch_wi;
+	mkch_pri_populate_select();
+}
+
+function mkch_pub_load_wasm()
 {
 	const mkch_fp = fetch("mkch.wasm");
 	const mkch_wp = WebAssembly.instantiateStreaming(mkch_fp);
-	const mkch_w = await mkch_wp;
-	const mkch_wi = mkch_w.instance;
-	g_mkch_wi = mkch_wi;
+	mkch_wp.then(mkch_pri_on_wasm_loaded_single);
 }
 
 function mkch_pub_buff_to_str(buff)
@@ -32,15 +66,15 @@ function mkch_pub_hash_compute(alg_name, alg_name_len, xof_len, data, data_len)
 {
 	const alg_name_addr = g_mkch_wi.exports.mkch_get_alg_name_addr();
 	const alg_name_size = g_mkch_wi.exports.mkch_get_alg_name_size();
-	const buffer_addr = g_mkch_wi.exports.mkch_get_buffer_addr();
-	const buffer_size = g_mkch_wi.exports.mkch_get_buffer_size();
+	const msg_addr = g_mkch_wi.exports.mkch_get_msg_addr();
+	const msg_size = g_mkch_wi.exports.mkch_get_msg_size();
 	const digest_addr = g_mkch_wi.exports.mkch_get_digest_addr();
 	const digest_size = g_mkch_wi.exports.mkch_get_digest_size();
 	if(!(alg_name_len >= 1 && alg_name_len <= alg_name_size))
 	{
 		return false;
 	}
-	if(!(data_len >= 0 && data_len <= buffer_size))
+	if(!(data_len >= 0 && data_len <= msg_size))
 	{
 		return false;
 	}
@@ -49,7 +83,7 @@ function mkch_pub_hash_compute(alg_name, alg_name_len, xof_len, data, data_len)
 		return false;
 	}
 	new Uint8Array(g_mkch_wi.exports.memory.buffer, alg_name_addr, alg_name_size).set(new Uint8Array(alg_name.buffer, 0, alg_name_len), 0);
-	new Uint8Array(g_mkch_wi.exports.memory.buffer, buffer_addr, buffer_size).set(new Uint8Array(data.buffer, 0, data_len), 0);
+	new Uint8Array(g_mkch_wi.exports.memory.buffer, msg_addr, msg_size).set(new Uint8Array(data.buffer, 0, data_len), 0);
 	const mkch_ret = g_mkch_wi.exports.mkch(alg_name_len, data_len, xof_len);
 	if(mkch_ret == 0)
 	{
@@ -116,7 +150,7 @@ function mkch_pri_on_chunk_read(args, file_state, hash_state, file_pos_new, file
 	}
 	const chunk_data = event.target.result;
 	const chunk_size = chunk_data.byteLength;
-	new Uint8Array(hash_state.m_mkch_wi.exports.memory.buffer, hash_state.m_buffer_addr, hash_state.m_buffer_size).set(new Uint8Array(chunk_data, 0, chunk_size), 0);
+	new Uint8Array(hash_state.m_mkch_wi.exports.memory.buffer, hash_state.m_msg_addr, hash_state.m_msg_size).set(new Uint8Array(chunk_data, 0, chunk_size), 0);
 	const appended = hash_state.m_mkch_wi.exports.mkch_append(chunk_size);
 	if(appended == 0)
 	{
@@ -150,7 +184,7 @@ function mkch_pri_on_chunk_read(args, file_state, hash_state, file_pos_new, file
 function mkch_pri_read_chunk(args, file_state, hash_state, file, file_pos_cur, file_size)
 {
 	const file_rem = file_size - file_pos_cur;
-	const chunk_size = Math.min(file_rem, hash_state.m_buffer_size);
+	const chunk_size = Math.min(file_rem, hash_state.m_msg_size);
 	const file_pos_new = file_pos_cur + chunk_size;
 	const file_slice = file.slice(file_pos_cur, file_pos_new);
 	const read_again = function(){ mkch_pri_read_chunk(args, file_state, hash_state, file, file_pos_new, file_size); };
@@ -167,8 +201,8 @@ function mkch_pri_on_wasm_loaded(args, file_state, hash_state_1)
 		m_mkch_wi: hash_state_1.m_mkch_wm.instance,
 		m_alg_name_addr: hash_state_1.m_mkch_wm.instance.exports.mkch_get_alg_name_addr(),
 		m_alg_name_size: hash_state_1.m_mkch_wm.instance.exports.mkch_get_alg_name_size(),
-		m_buffer_addr: hash_state_1.m_mkch_wm.instance.exports.mkch_get_buffer_addr(),
-		m_buffer_size: hash_state_1.m_mkch_wm.instance.exports.mkch_get_buffer_size(),
+		m_msg_addr: hash_state_1.m_mkch_wm.instance.exports.mkch_get_msg_addr(),
+		m_msg_size: hash_state_1.m_mkch_wm.instance.exports.mkch_get_msg_size(),
 		m_digest_addr: hash_state_1.m_mkch_wm.instance.exports.mkch_get_digest_addr(),
 		m_digest_size: hash_state_1.m_mkch_wm.instance.exports.mkch_get_digest_size(),
 	};
