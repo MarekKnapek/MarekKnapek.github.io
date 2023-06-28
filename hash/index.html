@@ -2,59 +2,38 @@
 <html>
 	<head>
 		<meta charset="utf-8">
+		<link rel="stylesheet" type="text/css" href="mkch.css">
+		<script type="text/javascript" src="mkch.js"></script>
 		<title>hash</title>
-		<style type="text/css">
-			@media(prefers-color-scheme:light)
-			{
-				body
-				{
-					background-color:white;
-					color:black;
-				}
-			}
-			@media(prefers-color-scheme:dark)
-			{
-				body
-				{
-					background-color:black;
-					color:white;
-				}
-				a:link,a:hover,a:active,a:visited
-				{
-					color:#1d9bf0;
-				}
-			}
-		</style>
 	</head>
 	<body>
-		<script type="text/javascript" src="mkch.js"></script>
 		<span>hash</span>
 		<br>
 		<br>
 		<a href="..">back</a>
 		<br>
 		<br>
-		<form onsubmit="return mkch_pub_form_onsubmit()">
+		<form id="form">
 			<label for="text">text:</label>
 			<br>
-			<textarea id="text" cols="60" rows="5" oninput="mkch_pub_text_oninput()" placeholder="insert text here"></textarea>
+			<textarea id="text" cols="60" rows="5" placeholder="insert text here"></textarea>
 			<br>
 			<br>
 			<label for="file">or select file:</label>
-			<input id="file" type="file" onchange="mkch_pub_file_onchange()">
+			<input id="file" type="file">
 			<br>
 			<br>
 			<label for="alg">algorithm:</label>
-			<select id="alg" onchange="mkch_pub_alg_onchange()"></select>
+			<select id="alg"></select>
 			<br>
 			<br>
 			<label id="lengthl" for="length" hidden>length:</label>
-			<input id="length" type="number" min="1" max="16384" step="1" value="64" hidden onchange="mkch_pub_length_onchange()">
+			<input id="length" type="number" min="1" max="16384" step="1" value="64" hidden>
 			<br>
 			<br>
 		</form>
 		<br>
 		<br>
-		<span id="resulto" hidden><span id="resulta"></span> hash of your input is <span id="resultb" style="font-family:monospace; display:block; word-break:break-all;"></span>.</span>
+		<span id="resulto" hidden><span id="resulta"></span> hash of your input is <span id="resultb" class="monospace"></span>.</span>
 	</body>
 </html>
