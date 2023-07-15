@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" type="text/css" href="mkcc.css">
+		<script type="text/javascript" src="mkcc.js"></script>
+		<title>Crypt</title>
+	</head>
+	<body>
+		<span>Crypt</span>
+		<br>
+		<br>
+		<a href="..">back</a>
+		<br>
+		<br>
+		<form id="form">
+			<table>
+				<tr>
+					<td>
+						<label for="file">Input File</label>
+					</td>
+					<td>
+						<input id="file" type="file">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="alg">Algorithm</label>
+					</td>
+					<td>
+						<select id="alg"></select>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="padding">Padding</label>
+					</td>
+					<td>
+						<select id="padding"></select>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="mode">Mode</label>
+					</td>
+					<td>
+						<select id="mode"></select>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="kdf">KDF</label>
+					</td>
+					<td>
+						<select id="kdf"></select>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="password">Password</label>
+					</td>
+					<td>
+						<input id="password" type="password">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="salt">Salt</label>
+					</td>
+					<td>
+						<input id="salt" type="text">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="cost">Iterations</label>
+					</td>
+					<td>
+						<input id="cost" type="number" min="1" max="4294967295" step="1" value="1000">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<input id="encrypt" type="submit" value="Encrypt">
+					</td>
+					<td>
+						<input id="decrypt" type="submit" value="Decrypt">
+					</td>
+				</tr>
+			</table>
+		</form>
+		<br>
+		<br>
+		<span id="result_o" hidden>
+			<span id="result_p" class="monospace"></span>
+			<progress id="progress" max="100"></progress>
+		</span>
+		<br>
+		<br>
+		<span>Source code available at <a href="https://github.com/MarekKnapek/mk_clib">github.com/MarekKnapek/mk_clib</a> and at <a href="https://github.com/MarekKnapek/MarekKnapek.github.io">github.com/MarekKnapek/MarekKnapek.github.io</a>.</span>
+	</body>
+</html>
