@@ -263,8 +263,8 @@ function mkcc_process(obj)
 {
 	const iv_len = mkcc_init_append_main(obj); if(iv_len == -1) return;
 	obj.m_iv = new Uint8Array(obj.m_iv.buffer, obj.m_iv.byteOffset, iv_len);
-	obj.m_wops_cnt = 8;
-	obj.m_rops_cnt = 8;
+	obj.m_wops_cnt = 32;
+	obj.m_rops_cnt = 32;
 	obj.m_wops = [];
 	obj.m_rops = [];
 	obj.m_file_read_req = obj.m_direction ? 0 : iv_len;
@@ -424,8 +424,9 @@ function mkcc_on_window_loaded()
 						};
 						return names_buff;
 					};
+					const data_size_desired = 64 * 1024;
 					const data_addr = obj.m_wi.exports.mkcc_get_data_addr(); if(!(data_addr != 0                         )) return false;
-					const data_size = obj.m_wi.exports.mkcc_get_data_size(); if(!(data_size >= 1 * 1024 * 1024           )) return false;
+					const data_size = obj.m_wi.exports.mkcc_get_data_size(); if(!(data_size >= data_size_desired         )) return false;
 					const names_len = obj.m_wi.exports.mkcc_get_names    (); if(!(names_len >= 0 && names_len <= 4 * 1024)) return false;
 					let buff = new Uint8Array(obj.m_wi.exports.memory.buffer, data_addr, names_len);
 					const alg_names_buff     = read_names(buff); if(!alg_names_buff    ) return false; const alg_names     = alg_names_buff    .m_strs; buff = alg_names_buff    .m_buff_next;
@@ -433,7 +434,7 @@ function mkcc_on_window_loaded()
 					const mode_names_buff    = read_names(buff); if(!mode_names_buff   ) return false; const mode_names    = mode_names_buff   .m_strs; buff = mode_names_buff   .m_buff_next;
 					const kdf_names_buff     = read_names(buff); if(!kdf_names_buff    ) return false; const kdf_names     = kdf_names_buff    .m_strs; buff = kdf_names_buff    .m_buff_next;
 					if(!(buff.byteLength == 0)) return false;
-					obj.m_data = new Uint8Array(obj.m_wi.exports.memory.buffer, data_addr, data_size);
+					obj.m_data = new Uint8Array(obj.m_wi.exports.memory.buffer, data_addr, data_size_desired);
 					const names =
 					{
 						m_alg_names    : alg_names    ,
