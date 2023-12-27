@@ -62,7 +62,7 @@ function double_on_changed(bit, idx)
 	const le4_buf = double_g.wi.exports.memory.buffer.slice(analyzer + exp_dcd_off - 1, analyzer + exp_dcd_off - 0);
 	const exp_dcd_buff = double_g.wi.exports.memory.buffer.slice(analyzer + exp_dcd_off, analyzer + exp_dcd_off + new Uint8Array(le4_buf)[0]); const exp_dcd_str = new TextDecoder().decode(exp_dcd_buff);
 	const type_buf = double_g.wi.exports.memory.buffer.slice(analyzer + type_off, analyzer + type_off + 1); const type_val = new Uint8Array(type_buf); console.assert(type_val >= 0 || type_val <= 4); const type_str = type_val == 0 ? "Zero" : (type_val == 1 ? "Denormal" : (type_val == 2 ? "Infinity" : (type_val == 3 ? "NaN" : "Normal")));
-	const one_buf = double_g.wi.exports.memory.buffer.slice(analyzer + one_off, analyzer + one_off + 1); const one_val = new Uint8Array(one_buf); console.assert(one_val == 0 || one_val == 1); const one_str = one_val == 0 ? "No" : "Yes";
+	const one_buf = double_g.wi.exports.memory.buffer.slice(analyzer + one_off, analyzer + one_off + 1); const one_val = new Uint8Array(one_buf); console.assert(one_val == 0 || one_val == 1); const one_str = (type_val == 1 || type_val == 4) ? ((one_val == 0) ? "No" : "Yes") : "n/a";
 	const mts_bin_buf = double_g.wi.exports.memory.buffer.slice(analyzer + mts_bin_off + (64 - 52), analyzer + mts_bin_off + (64 - 52) + 52); const mts_bin_str = new TextDecoder().decode(mts_bin_buf);
 	const mts_hex_buf = double_g.wi.exports.memory.buffer.slice(analyzer + mts_hex_off + (8 * 2 - Math.ceil(52 / 4)), analyzer + mts_hex_off + (8 * 2 - Math.ceil(52 / 4)) + Math.ceil(52 / 4)); const mts_hex_str = new TextDecoder().decode(mts_hex_buf);
 	const le5_buf = double_g.wi.exports.memory.buffer.slice(analyzer + mts_dec_off - 1, analyzer + mts_dec_off - 0);
