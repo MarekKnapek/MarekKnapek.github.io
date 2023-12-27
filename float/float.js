@@ -32,7 +32,9 @@ function float_on_changed(bit, idx)
 	const mts_hex_len = 8;
 	const mts_dec_off = mts_hex_off + mts_hex_len + 1;
 	const mts_dec_len = 10;
-	const val_offset = mts_dec_off + mts_dec_len + 1;
+	const mts_dcd_off = mts_dec_off + mts_dec_len + 1;
+	const mts_dcd_len = 1 + 1 + 23;
+	const val_offset = mts_dcd_off + mts_dcd_len + 1;
 	const val_len = 152;
 
 	const byte_idx = Math.floor(idx / 8);
@@ -65,8 +67,10 @@ function float_on_changed(bit, idx)
 	const mts_hex_buf = float_g.wi.exports.memory.buffer.slice(analyzer + mts_hex_off + (4 * 2 - Math.ceil(23 / 4)), analyzer + mts_hex_off + (4 * 2 - Math.ceil(23 / 4)) + Math.ceil(23 / 4)); const mts_hex_str = new TextDecoder().decode(mts_hex_buf);
 	const le5_buf = float_g.wi.exports.memory.buffer.slice(analyzer + mts_dec_off - 1, analyzer + mts_dec_off + 0);
 	const mts_dec_buff = float_g.wi.exports.memory.buffer.slice(analyzer + mts_dec_off, analyzer + mts_dec_off + new Uint8Array(le5_buf)[0]); const mts_dec_str = new TextDecoder().decode(mts_dec_buff);
-	const le6_buf = float_g.wi.exports.memory.buffer.slice(analyzer + val_offset - 1, analyzer + val_offset + 0);
-	const val_buf = float_g.wi.exports.memory.buffer.slice(analyzer + val_offset, analyzer + val_offset + new Uint8Array(le6_buf)[0]); const valstr = new TextDecoder().decode(val_buf);
+	const le6_buf = float_g.wi.exports.memory.buffer.slice(analyzer + mts_dcd_off - 1, analyzer + mts_dcd_off + 0);
+	const mts_dcd_buf = float_g.wi.exports.memory.buffer.slice(analyzer + mts_dcd_off, analyzer + mts_dcd_off + new Uint8Array(le6_buf)[0]); const mts_dcd_str = new TextDecoder().decode(mts_dcd_buf);
+	const le7_buf = float_g.wi.exports.memory.buffer.slice(analyzer + val_offset - 1, analyzer + val_offset + 0);
+	const val_buf = float_g.wi.exports.memory.buffer.slice(analyzer + val_offset, analyzer + val_offset + new Uint8Array(le7_buf)[0]); const valstr = new TextDecoder().decode(val_buf);
 	document.getElementById("o_bin").textContent = binstr;
 	document.getElementById("o_hex").textContent = hexstr;
 	document.getElementById("o_uns").textContent = unsstr;
@@ -81,6 +85,7 @@ function float_on_changed(bit, idx)
 	document.getElementById("o_mts_bin").textContent = mts_bin_str;
 	document.getElementById("o_mts_hex").textContent = mts_hex_str;
 	document.getElementById("o_mts_dec").textContent = mts_dec_str;
+	document.getElementById("o_mts_dcd").textContent = mts_dcd_str;
 	document.getElementById("o_val").textContent = valstr;
 }
 
