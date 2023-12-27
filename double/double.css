@@ -1,0 +1,77 @@
+@media (prefers-color-scheme: light)
+{
+	body
+	{
+		background-color: white;
+		color: black;
+	}
+	table
+	{
+		border: 1px solid black;
+	}
+	.outer td, th
+	{
+		border: 1px solid black;
+	}
+}
+
+@media (prefers-color-scheme: dark)
+{
+	body
+	{
+		background-color: black;
+		color: white;
+	}
+	table
+	{
+		border: 1px solid white;
+	}
+	.outer td, th
+	{
+		border: 1px solid white;
+	}
+	a:link,a:hover,a:active,a:visited
+	{
+		color: #1d9bf0;
+	}
+}
+
+.outer
+{
+	border-collapse: collapse;
+}
+
+.inner
+{
+	border: 0px;
+}
+
+.inner td
+{
+	border: 0px;
+}
+
+.monospace
+{
+	font-family: monospace;
+	display: block;
+	word-break: break-all;
+	width: 64ch;
+	max-width: 64ch;
+}
+
+.right
+{
+	text-align: right;
+}
+
+.output
+{
+	border-collapse: collapse;
+}
+
+.newsection
+{
+	border: solid;
+	border-width: 1px 0px 0px 0px;
+}
