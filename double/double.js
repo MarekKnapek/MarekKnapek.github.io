@@ -69,9 +69,9 @@ function double_on_changed(bit, idx)
 	const mts_dec_buff = double_g.wi.exports.memory.buffer.slice(analyzer + mts_dec_off, analyzer + mts_dec_off + new Uint8Array(le5_buf)[0]); const mts_dec_str = new TextDecoder().decode(mts_dec_buff);
 	const le6_buf = double_g.wi.exports.memory.buffer.slice(analyzer + mts_dcd_off - 1, analyzer + mts_dcd_off - 0);
 	const mts_dcd_buf = double_g.wi.exports.memory.buffer.slice(analyzer + mts_dcd_off, analyzer + mts_dcd_off + new Uint8Array(le6_buf)[0]); const mts_dcd_str = new TextDecoder().decode(mts_dcd_buf);
-	const le7_buf = double_g.wi.exports.memory.buffer.slice(analyzer + val_offset - 2, analyzer + val_offset - 1);
-	const le8_buf = double_g.wi.exports.memory.buffer.slice(analyzer + val_offset - 1, analyzer + val_offset - 0);
-	const val_buf = double_g.wi.exports.memory.buffer.slice(analyzer + val_offset, analyzer + val_offset + (((new Uint8Array(le7_buf)[0]) << 0) | ((new Uint8Array(le8_buf)[0]) << 8))); const valstr = new TextDecoder().decode(val_buf);
+	const le7_buf = double_g.wi.exports.memory.buffer.slice(analyzer + val_offset + 1 - 2 + 0, analyzer + val_offset + 1 - 2 + 1);
+	const le8_buf = double_g.wi.exports.memory.buffer.slice(analyzer + val_offset + 1 - 2 + 1, analyzer + val_offset + 1 - 2 + 2);
+	const val_buf = double_g.wi.exports.memory.buffer.slice(analyzer + val_offset + 1, analyzer + val_offset + 1 + (((new Uint8Array(le7_buf)[0]) << 0) | ((new Uint8Array(le8_buf)[0]) << 8))); const valstr = new TextDecoder().decode(val_buf);
 	document.getElementById("o_bin").textContent = binstr;
 	document.getElementById("o_hex").textContent = hexstr;
 	document.getElementById("o_uns").textContent = unsstr;
