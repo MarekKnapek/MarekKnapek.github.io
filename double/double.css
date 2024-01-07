@@ -39,6 +39,7 @@
 .outer
 {
 	border-collapse: collapse;
+	white-space: nowrap;
 }
 
 .inner

@@ -128,6 +128,38 @@ function quad_fetch_wasm()
 	wp.then(function(wm){ quad_on_wasm_loaded(wm); });
 }
 
+function quad_make_checkboxes()
+{
+	const bits_all = 128;
+	const bits_mts = 112;
+	const bits_exp = bits_all - 1 - bits_mts;
+
+	const table_sign = document.getElementById("sign");
+	const row_sign = table_sign.children[0].children[0];
+	const bit = document.createElement("input");
+	bit.setAttribute("type", "checkbox");
+	bit.setAttribute("id", "bit" + (bits_all - 1));
+	row_sign.appendChild(bit);
+	const table_exp = document.getElementById("exp");
+	const row_exp = table_exp.children[0].children[0];
+	for(let i = 0; i != bits_exp; ++i)
+	{
+		const bit = document.createElement("input");
+		bit.setAttribute("type", "checkbox");
+		bit.setAttribute("id", "bit" + (bits_all - 1 - 1 - i));
+		row_exp.appendChild(bit);
+	}
+	const table_mts = document.getElementById("mts");
+	const row_mts = table_mts.children[0].children[0];
+	for(let i = 0; i != bits_mts; ++i)
+	{
+		const bit = document.createElement("input");
+		bit.setAttribute("type", "checkbox");
+		bit.setAttribute("id", "bit" + (bits_all - 1 - 1 - bits_exp - i));
+		row_mts.appendChild(bit);
+	}
+}
+
 function quad_init()
 {
 	const n = 16;
@@ -146,6 +178,7 @@ function quad_init()
 function quad_on_window_loaded()
 {
 	quad_init();
+	quad_make_checkboxes();
 	quad_fetch_wasm();
 }
 
