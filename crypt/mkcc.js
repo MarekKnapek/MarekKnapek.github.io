@@ -1,7 +1,7 @@
 "use strict";
 
 
-let g_mkcc_obj = null;
+let g_mkcc = null;
 
 
 function mkcc_init_append_num_1(buff, num)
@@ -311,16 +311,16 @@ function mkcc_refresh(obj)
 {
 	obj.m_cancel = false;
 	obj.m_next = null;
-	if(!g_mkcc_obj)
+	if(!g_mkcc)
 	{
-		g_mkcc_obj = obj;
-		mkcc_refresh_impl(g_mkcc_obj);
+		g_mkcc = obj;
+		mkcc_refresh_impl(g_mkcc);
 	}
 	else
 	{
-		g_mkcc_obj.m_next = obj;
-		g_mkcc_obj.m_cancel = true;
-		g_mkcc_obj = obj;
+		g_mkcc.m_next = obj;
+		g_mkcc.m_cancel = true;
+		g_mkcc = obj;
 	}
 }
 
@@ -573,10 +573,10 @@ function mkcc_on_window_loaded()
 					document.getElementById("result_p").textContent = str;
 					document.getElementById("progress").value = 100.0;
 					document.getElementById("result_o").hidden = false;
-					g_mkcc_obj = obj.m_next;
-					if(g_mkcc_obj)
+					g_mkcc = obj.m_next;
+					if(g_mkcc)
 					{
-						mkcc_refresh_impl(g_mkcc_obj);
+						mkcc_refresh_impl(g_mkcc);
 					}
 				};
 				const state_on_end = function(obj)
