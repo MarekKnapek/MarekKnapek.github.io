@@ -641,7 +641,7 @@ function mkcc_on_window_loaded()
 
 function mkcc_start()
 {
-	window.onload = mkcc_on_window_loaded;
+	window.addEventListener("load", mkcc_on_window_loaded);
 }
 
 mkcc_start();
