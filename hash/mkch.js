@@ -206,7 +206,7 @@ function mkch_prepare_args()
 	const alge = document.getElementById("alg");
 	const alg_name = new Uint8Array(0xff);
 	const alg_name_len = new TextEncoder().encodeInto(alge.value, alg_name).written;
-	const is_xof = alge.value == "shake_128" || alge.value == "shake_256";
+	const is_xof = alge.value == "shake_128" || alge.value == "shake_256" || alge.value == "blake3xof";
 	const xof_len_base = 64;
 	let xof_len_;
 	xof_len_ = document.getElementById("length").value;
