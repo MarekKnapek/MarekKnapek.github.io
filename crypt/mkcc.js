@@ -431,7 +431,7 @@ function mkcc_on_closed(obj)
 	const str = "Done.";
 	document.getElementById("result_p").textContent = str;
 	document.getElementById("progress").value = 100.0;
-	document.getElementById("result_o").hidden = false;
+	document.getElementById("progress").hidden = false;
 	g_mkcc = obj.m_next;
 	if(g_mkcc)
 	{
@@ -477,7 +477,7 @@ function mkcc_on_progress(obj)
 	console.assert(rounded >= document.getElementById("progress").value);
 	document.getElementById("result_p").textContent = str;
 	document.getElementById("progress").value = rounded;
-	document.getElementById("result_o").hidden = false;
+	document.getElementById("progress").hidden = false;
 }
 
 function mkcc_on_end(obj)
@@ -488,7 +488,7 @@ function mkcc_on_end(obj)
 	console.assert(rounded >= document.getElementById("progress").value);
 	document.getElementById("result_p").textContent = str;
 	document.getElementById("progress").value = rounded;
-	document.getElementById("result_o").hidden = false;
+	document.getElementById("progress").hidden = false;
 	const cp = obj.m_wsdw.close();
 	cp.then( function(){ mkcc_on_closed(obj); } );
 }
@@ -648,19 +648,55 @@ function mkcc_populate_names(obj)
 	return true;
 }
 
-function mkcc_on_wasm_loaded(obj, wm)
+function mkcc_on_wasm_loaded(obj, ro)
 {
-	const wi = wm.instance;
+	const wi = ro.instance;
 	obj.m_wi = wi;
 	if(mkcc_populate_names(obj) === false) return;
 	mkcc_populate_events(obj);
 }
 
+function mkcc_us_on_chunk(rsdc, reader, self, bytes_cnt, o)
+{
+	if(!o.done)
+	{
+		const bytes_cnt_new = bytes_cnt + o.value.length;
+		const kbs = Math.trunc(bytes_cnt_new / 1024).toLocaleString();
+		document.getElementById("result_p").textContent = `Loading... ${kbs} kB`;
+		rsdc.enqueue(o.value);
+		const po = reader.read();
+		po.then( function(o){ self(rsdc, reader, self, bytes_cnt_new, o); } );
+	}
+	else
+	{
+		document.getElementById("result_p").textContent = "";
+		rsdc.close();
+	}
+}
+
+function mkcc_us_on_start(rsdc, reader)
+{
+	const po = reader.read();
+	po.then( function(o){ mkcc_us_on_chunk(rsdc, reader, mkcc_us_on_chunk, 0, o); } );
+}
+
+function mkcc_on_response(obj, response)
+{
+	const body = response.body;
+	const reader = body.getReader();
+	const us = { start: function(rsdc){ return mkcc_us_on_start(rsdc, reader); }, };
+	const rs = new ReadableStream(us);
+	const options = { status: response.status, statusText: response.statusText, headers: response.headers, };
+	const res = new Response(rs, options);
+	const pro = WebAssembly.instantiateStreaming(res);
+	pro.then( function(ro){ mkcc_on_wasm_loaded(obj, ro); } );
+}
+
 function mkcc_run(obj)
 {
-	const fp = fetch("mkcc.wasm");
-	const wp = WebAssembly.instantiateStreaming(fp);
-	wp.then( function(wm){ mkcc_on_wasm_loaded(obj, wm); } );
+	document.getElementById("result_p").textContent = "Loading...";
+	const pr = window.fetch("mkcc.wasm");
+	pr.then( function(r){ mkcc_on_response(obj, r); } );
 }
 
 function mkcc_make()
