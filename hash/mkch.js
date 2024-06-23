@@ -281,6 +281,48 @@ function mkch_form_onsubmit()
 	return false;
 }
 
+function mkch_parse_url()
+{
+	const f = new URL(window.location.href).hash;
+	if
+	(
+		f.length >= 9 &&
+		f[0] == '#' &&
+		f[1] == '?' &&
+		f[2] == 'h' &&
+		f[3] == '=' &&
+		true
+	)
+	{
+		const alge = document.getElementById("alg");
+		const pos = f.indexOf("&", 5);
+		const h = f.substring(4, pos != -1 ? pos : f.length).toLowerCase();
+		for(const o of alge.options)
+		{
+			if(o.label.toLowerCase() == h || o.value.toLowerCase() == h)
+			{
+				o.selected = true;
+				mkch_alg_onchange();
+				break;
+			}
+		}
+		if
+		(
+			pos != -1 &&
+			f.length >= pos + 4 &&
+			f[pos + 1] == "t" &&
+			f[pos + 2] == "=" &&
+			true
+		)
+		{
+			const text = document.getElementById("text");
+			const t = decodeURIComponent(f.substring(pos + 3));
+			text.value = t;
+			mkch_text_oninput();
+		}
+	}
+}
+
 function mkch_populate_events()
 {
 	const form = document.getElementById("form");
@@ -338,6 +380,7 @@ function mkch_on_wasm_loaded(mkch_wm)
 	g_mkch_wi = mkch_wi;
 	mkch_populate_algs();
 	mkch_populate_events();
+	mkch_parse_url();
 }
 
 function mkch_load_wasm()
