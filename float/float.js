@@ -113,7 +113,52 @@ function float_trigger_event()
 {
 	const bit = document.getElementById("bit0");
 	float_on_changed(bit, 0);
+}
 
+function float_parse_url()
+{
+	const f = new URL(window.location.href).hash;
+	if
+	(
+		f.length >= 6 + 1 &&
+		f.length <= 6 + 4 * 2 &&
+		f[0] == '#' &&
+		f[1] == '?' &&
+		f[2] == 'n' &&
+		f[3] == '=' &&
+		f[4] == '0' &&
+		f[5] == 'x' &&
+		true
+	)
+	{
+		const symbols = "0123456789abcdef";
+		let bits_arr = Array(32);
+		let bits_cnt = 0;
+		const h = f.substring(6, f.length).toLowerCase();
+		const n = h.length;
+		for(let i = 0; i != n; ++i)
+		{
+			const idx = (n - 1) - i;
+			const digit = symbols.indexOf(f[6 + idx]);
+			if(digit == -1)
+			{
+				return;
+			}
+			for(let j = 0; j != 4; ++j)
+			{
+				const bit = ((digit >> j) & 0x1) != 0;
+				bits_arr[i * 4 + j] = bit;
+				++bits_cnt;
+			}
+		}
+		for(let i = 0; i != bits_cnt; ++i)
+		{
+			const eid = "bit" + i;
+			const ebit = document.getElementById(eid);
+			ebit.checked = bits_arr[i];
+			float_on_changed(document.getElementById("bit" + i), i);
+		}
+	}
 }
 
 function float_on_wasm_loaded(wm)
@@ -123,6 +168,7 @@ function float_on_wasm_loaded(wm)
 	g_analyzer.wi = wi;
 	float_set_events();
 	float_trigger_event();
+	float_parse_url();
 }
 
 function float_fetch_wasm()
