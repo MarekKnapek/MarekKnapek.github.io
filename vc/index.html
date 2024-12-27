@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" type="text/css" href="mkvc.css">
+		<script type="text/javascript" src="mkvc.js"></script>
+		<title>Vera Crypt</title>
+	</head>
+	<body>
+		<span>Vera Crypt</span>
+		<br>
+		<br>
+		<a href="..">back</a>
+		<br>
+		<br>
+		<form id="form">
+			<table>
+				<tr>
+					<td>
+						<label for="ifile">Input File</label>
+					</td>
+					<td>
+						<input type="file" id="ifile">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="ofile">Output File</label>
+					</td>
+					<td>
+						<button type="button" id="ofile">Browse...</button>
+						<span id="ofiletxt"></span>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="pwd">Password</label>
+					</td>
+					<td>
+						<input type="password" id="pwd">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="prf">PRF</label>
+					</td>
+					<td>
+						<select id="prf">
+							<option value="auto">Autodetect</option>
+							<option value="sha512">PBKDF2 HMAC SHA-512</option>
+							<option value="whirlpool">PBKDF2 HMAC Whirlpool</option>
+							<option value="sha256">PBKDF2 HMAC SHA-256</option>
+							<option value="blake2s256">PBKDF2 HMAC BLAKE2s-256</option>
+							<option value="streebog512">PBKDF2 HMAC Streebog-512</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="cpim">Cusom PIM</label>
+					</td>
+					<td>
+						<input type="checkbox" id="cpim">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label for="ipim">PIM</label>
+					</td>
+					<td>
+						<input type="number" id="ipim" min="1" max="4294967295" step="1" value="1500" disabled>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<input type="submit" id="decrypt" value="Decrypt">
+					</td>
+				</tr>
+			</table>
+		</form>
+		<br>
+		<br>
+		<span id="result_o">
+			<span id="result_p" class="monospace">You need JavaScript and WASM capable web browser to use this web site.</span>
+			<progress id="progress" max="100" hidden></progress>
+		</span>
+		<br>
+		<br>
+		<span>Source code available at <a href="https://github.com/MarekKnapek/mk_clib">github.com/MarekKnapek/mk_clib</a> and at <a href="https://github.com/MarekKnapek/MarekKnapek.github.io">github.com/MarekKnapek/MarekKnapek.github.io</a>.</span>
+	</body>
+</html>
