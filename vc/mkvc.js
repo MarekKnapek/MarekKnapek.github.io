@@ -66,6 +66,15 @@ function mkvc_memcpy(dst_buff, dst_off, src_buff, src_off, amount)
 	}
 }
 
+function mkvc_memclear(block)
+{
+	const n = block.byteLength;
+	for(let i = 0; i != n; ++i)
+	{
+		block[i] = 0x00;
+	}
+}
+
 function mkvc_real_reset(obj)
 {
 	obj.m_ofile_handle = null;
@@ -88,7 +97,6 @@ function mkvc_real_reset(obj)
 	obj.m_block_buf = null;
 	obj.m_block_idx = null;
 	obj.m_file_pointer = null;
-	obj.m_last_write_promise = null;
 	obj.m_write_ptr = null;
 }
 
@@ -132,21 +140,15 @@ function mkvc_at_write_end(obj)
 {
 	mkvc_show_msg(obj, "Closing file...");
 	const p = obj.m_ofile_writer.close();
-	p.then( function(){ mkvc_show_msg(obj, "File closed, done."); mkvc_real_reset(obj); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to close file."); mkvc_real_reset(obj); } );
+	p.then( function(){ mkvc_show_msg(obj, "File closed, done."); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to close file."); } );
+	mkvc_real_reset(obj);
 }
 
 function mkvc_reset(obj)
 {
 	if(obj.m_ofile_writer !== null)
 	{
-		if(obj.m_last_write_promise !== null)
-		{
-			obj.m_last_write_promise.then( function(){ mkvc_at_write_end(obj); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to enqueue next write."); mkvc_real_reset(obj); } );
-		}
-		else
-		{
-			mkvc_at_write_end(obj);
-		}
+		mkvc_at_write_end(obj);
 	}
 	else
 	{
@@ -154,29 +156,40 @@ function mkvc_reset(obj)
 	}
 }
 
-function mkvc_schedule_write_impl(obj, block)
+function mkvc_schedule_write_3(obj, next_action, block)
 {
 	const p_write = obj.m_ofile_writer.write(block);
-	obj.m_last_write_promise = p_write;
 	obj.m_write_ptr += block.byteLength;
 	mkvc_show_file_write_ptr(obj);
+	p_write.then( function(){ next_action(obj, next_action); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to enqueue next write."); } );
 }
 
-function mkvc_schedule_write(obj, block_shared)
+function mkvc_schedule_write_2(obj, next_action, block)
 {
-	const block_private = new Uint8Array(block_shared.byteLength);
-	mkvc_memcpy(block_private, 0, block_shared, 0, block_shared.byteLength);
-	if(obj.m_last_write_promise === null)
+	const header_len = 1 * 1024 * 1024;
+	const rem = header_len - obj.m_write_ptr;
+	const block_2 = new Uint8Array(rem);
+	mkvc_memclear(block_2);
+	const p_write = obj.m_ofile_writer.write(block_2);
+	obj.m_write_ptr += block_2.byteLength;
+	mkvc_show_file_write_ptr(obj);
+	p_write.then( function(){ mkvc_schedule_write_3(obj, next_action, block); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to enqueue next write."); } );
+}
+
+function mkvc_schedule_write_1(obj, next_action, block)
+{
+	const header_len = 1 * 1024 * 1024;
+	if(obj.m_write_ptr < header_len)
 	{
-		mkvc_schedule_write_impl(obj, block_private);
+		mkvc_schedule_write_2(obj, next_action, block);
 	}
 	else
 	{
-		obj.m_last_write_promise.then( function(){ mkvc_schedule_write_impl(obj, block_private); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to enqueue next write."); } );
+		mkvc_schedule_write_3(obj, next_action, block);
 	}
 }
 
-function mkvc_decrypt_5(obj, block)
+function mkvc_decrypt_5(obj, next_action, block)
 {
 	const addr = obj.m_instance.exports.mkvc_get_data_addr();
 	const size = obj.m_instance.exports.mkvc_get_data_size();
@@ -186,11 +199,11 @@ function mkvc_decrypt_5(obj, block)
 	const blocks = block.byteLength / obj.m_block_buf.byteLength;
 	mkvc_memcpy(obj.m_instance.exports.memory, addr, block, 0, block.byteLength);
 	obj.m_instance.exports.mkvc_append(blocks);
-	mkvc_memcpy(block, 0, obj.m_instance.exports.memory, addr, block.byteLength);
-	mkvc_schedule_write(obj, block);
+	const block_2 = mkvc_sub_block(mkvc_block_from_memory(obj.m_instance.exports.memory), addr, size);
+	mkvc_schedule_write_1(obj, next_action, block_2);
 }
 
-function mkvc_decrypt_4(obj, block)
+function mkvc_decrypt_4(obj, next_action, block, adjust_read)
 {
 	console.assert(obj.m_block_buf.byteLength === 512);
 	const size = obj.m_instance.exports.mkvc_get_data_size();
@@ -199,12 +212,13 @@ function mkvc_decrypt_4(obj, block)
 	if(len !== 0)
 	{
 		const block_2 = mkvc_sub_block(block, 0, len);
-		mkvc_decrypt_5(obj, block_2);
 		obj.m_file_pointer += len;
+		adjust_read(obj);
+		mkvc_decrypt_5(obj, next_action, block_2);
 	}
 }
 
-function mkvc_decrypt_3(obj, block)
+function mkvc_decrypt_3(obj, next_action, block, adjust_read)
 {
 	const data_begin = 128 * 1024;
 	if(obj.m_file_pointer < data_begin)
@@ -214,21 +228,37 @@ function mkvc_decrypt_3(obj, block)
 		const rem = block.byteLength - consume_real;
 		if(rem != 0)
 		{
+			obj.m_file_pointer += consume_real;
 			const block_2 = mkvc_sub_block(block, consume_real, rem);
-			mkvc_decrypt_4(obj, block_2);
+			mkvc_decrypt_4(obj, next_action, block_2, adjust_read);
 		}
 		else
 		{
 			obj.m_file_pointer += consume_real;
+			adjust_read(obj);
+			next_action(obj, next_action);
 		}
 	}
 	else
 	{
-		mkvc_decrypt_4(obj, block);
+		mkvc_decrypt_4(obj, next_action, block, adjust_read);
 	}
 }
 
-function mkvc_decrypt_2(obj)
+function adjust_read_a(obj, old_ptr)
+{
+	const consumed = obj.m_file_pointer - old_ptr;
+	obj.m_chunk_smol_idx += consumed;
+	console.assert(obj.m_chunk_smol_idx === obj.m_chunk_smol_buf.byteLength);
+};
+
+function adjust_read_b(obj, old_ptr)
+{
+	const consumed = obj.m_file_pointer - old_ptr;
+	obj.m_chunk_big_idx += consumed;
+};
+
+function mkvc_decrypt_2(obj, next_action)
 {
 	console.assert(obj.m_block_buf.byteLength === 512);
 	if(obj.m_chunk_smol_idx !== obj.m_chunk_smol_buf.byteLength)
@@ -237,10 +267,7 @@ function mkvc_decrypt_2(obj)
 		const len = obj.m_chunk_smol_buf.byteLength - obj.m_chunk_smol_idx;
 		console.assert(len === obj.m_block_buf.byteLength);
 		const old_ptr = obj.m_file_pointer;
-		mkvc_decrypt_3(obj, obj.m_chunk_smol_buf);
-		const consumed = obj.m_file_pointer - old_ptr;
-		obj.m_chunk_smol_idx += consumed;
-		console.assert(obj.m_chunk_smol_idx === obj.m_chunk_smol_buf.byteLength);
+		mkvc_decrypt_3(obj, next_action, obj.m_chunk_smol_buf, function(obj){ adjust_read_a(obj, old_ptr); } );
 	}
 	if((obj.m_chunk_big_buf.byteLength - obj.m_chunk_big_idx) >= obj.m_block_buf.byteLength)
 	{
@@ -248,9 +275,7 @@ function mkvc_decrypt_2(obj)
 		const rem = obj.m_chunk_big_buf.byteLength - obj.m_chunk_big_idx;
 		const old_ptr = obj.m_file_pointer;
 		const buff_2 = mkvc_sub_block(obj.m_chunk_big_buf, off, rem);
-		mkvc_decrypt_3(obj, buff_2);
-		const consumed = obj.m_file_pointer - old_ptr;
-		obj.m_chunk_big_idx += consumed;
+		mkvc_decrypt_3(obj, next_action, buff_2, function(obj){ adjust_read_b(obj, old_ptr); } );
 	}
 }
 
@@ -267,21 +292,23 @@ function mkvc_data_amount(obj)
 	return amount;
 }
 
-function mkvc_decrypt(obj, next_read)
+function mkvc_decrypt_b(obj, next_action, next_read)
 {
 	console.assert(obj.m_block_buf.byteLength === 512);
-	while(mkvc_data_amount(obj) >= obj.m_block_buf.byteLength)
+	if(mkvc_data_amount(obj) >= obj.m_block_buf.byteLength)
 	{
-		mkvc_decrypt_2(obj);
-	}
-	if(obj.m_last_write_promise === null)
-	{
-		next_read(obj, next_read);
+		mkvc_decrypt_2(obj, next_action);
 	}
 	else
 	{
-		obj.m_last_write_promise.then( function(){ next_read(obj, next_read); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to enqueue next write."); } );
+		next_read(obj, next_read);
 	}
+}
+
+function mkvc_decrypt_a(obj, next_read)
+{
+	const nx = function(obj, next_action){ mkvc_decrypt_b(obj, next_action, next_read); };
+	mkvc_decrypt_b(obj, nx, next_read);
 }
 
 function mkvc_init(obj)
@@ -357,12 +384,12 @@ function mkvc_file_read_continue_chunk(obj, next_read)
 		}
 		else if(obj.m_inited === true)
 		{
-			mkvc_decrypt(obj, next_read);
+			mkvc_decrypt_a(obj, next_read);
 		}
 	}
 	else if(obj.m_inited === true)
 	{
-		mkvc_decrypt(obj, next_read);
+		mkvc_decrypt_a(obj, next_read);
 	}
 }
 
@@ -419,7 +446,6 @@ function mkvc_go(obj)
 	obj.m_file_pointer = 0;
 	obj.m_chunk_smol_buf = new Uint8Array(512);
 	obj.m_chunk_smol_idx = obj.m_chunk_smol_buf.byteLength;
-	obj.m_last_write_promise = null;
 	obj.m_write_ptr = 0;
 	obj.m_ifs = ifs;
 	obj.m_ifr = ifr;
@@ -505,6 +531,11 @@ function mkvc_get_args(obj)
 		mkvc_show_error(obj, "Please select single input file.");
 		return false;
 	}
+	if(obj.m_ofile_writer === null)
+	{
+		mkvc_show_error(obj, "Please select output file.");
+		return false;
+	}
 	const pwd = mkvc_get_text("pwd");
 	const prf = mkvc_get_select("prf");
 	const cpim = mkvc_get_checkbox("cpim");
@@ -564,6 +595,7 @@ function mkvc_ofile_on_selected(obj, file_system_file_handle)
 
 function mkvc_ofile_on_click(obj)
 {
+	document.getElementById("ofiletxt").textContent = "";
 	const p_file_system_file_handle = window.showSaveFilePicker();
 	p_file_system_file_handle.then( function(file_system_file_handle){ mkvc_ofile_on_selected(obj, file_system_file_handle); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to get save file handle."); } );
 }
@@ -586,6 +618,7 @@ function mkvc_populate_events(obj)
 
 function mkvc_on_wasm_loaded(obj, result_object)
 {
+	mkvc_show_msg(obj, "Done downloading WASM.");
 	const wmodule = result_object.module;
 	const winstance = result_object.instance;
 	obj.m_module = wmodule;
@@ -608,8 +641,6 @@ function mkvc_us_on_chunk(obj, reader, controller, self, bytes_cnt, chunk_done)
 	}
 	else
 	{
-		const msg = "Done downloading WASM.";
-		mkvc_show_msg(obj, msg);
 		controller.close();
 	}
 }
@@ -683,7 +714,6 @@ function mkvc_make()
 		m_block_buf: null,
 		m_block_idx: null,
 		m_file_pointer: null,
-		m_last_write_promise: null,
 		m_write_ptr: null,
 	};
 	mkvc_reset(obj);
