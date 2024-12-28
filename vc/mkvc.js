@@ -94,42 +94,30 @@ function mkvc_real_reset(obj)
 
 function mkvc_show_reset(obj)
 {
-	document.getElementById("result_p").textContent = "";
+	const str = "";
+	console.log(str);
+	document.getElementById("result_p").textContent = str;
 }
 
 function mkvc_show_msg(obj, txt)
 {
-	document.getElementById("result_p").textContent = txt;
+	const str = txt;
+	console.log(str);
+	document.getElementById("result_p").textContent = str;
 }
 
 function mkvc_show_error(obj, txt)
 {
-	document.getElementById("result_p").textContent = `Error: ${txt}`;
+	const str = `Error: ${txt}`;
+	console.log(str);
+	document.getElementById("result_p").textContent = str;
 }
 
 function mkvc_show_promise_reason(obj, reason, txt)
 {
-	document.getElementById("result_p").textContent = `Error: "${txt}", promise rejected with "${reason}" reason.`;
-}
-
-function mkvc_show_file_closing(obj)
-{
-	document.getElementById("result_p").textContent = "closing file...";
-}
-
-function mkvc_show_file_closed(obj)
-{
-	document.getElementById("result_p").textContent = "file closed";
-}
-
-function mkvc_show_file_close_failed(obj, err)
-{
-	document.getElementById("result_p").textContent = "error while closing file";
-}
-
-function mkvc_show_file_promise_err(obj, err)
-{
-	document.getElementById("result_p").textContent = "error happened while writing file";
+	const str = `Error: "${txt}", promise rejected with "${reason}" reason.`;
+	console.log(str);
+	document.getElementById("result_p").textContent = str;
 }
 
 function mkvc_show_file_write_ptr(obj)
@@ -142,9 +130,9 @@ function mkvc_show_file_write_ptr(obj)
 
 function mkvc_at_write_end(obj)
 {
-	mkvc_show_file_closing(obj);
+	mkvc_show_msg(obj, "Closing file...");
 	const p = obj.m_ofile_writer.close();
-	p.then( function(){ mkvc_show_file_closed(obj); mkvc_real_reset(obj); }, function(err){ mkvc_show_file_close_failed(obj, err); mkvc_real_reset(obj); } );
+	p.then( function(){ mkvc_show_msg(obj, "File closed, done."); mkvc_real_reset(obj); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to close file."); mkvc_real_reset(obj); } );
 }
 
 function mkvc_reset(obj)
@@ -153,7 +141,7 @@ function mkvc_reset(obj)
 	{
 		if(obj.m_last_write_promise !== null)
 		{
-			obj.m_last_write_promise.then( function(){ mkvc_at_write_end(obj); }, function(err){ mkvc_show_file_promise_err(obj, err); mkvc_real_reset(obj); } );
+			obj.m_last_write_promise.then( function(){ mkvc_at_write_end(obj); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to enqueue next write."); mkvc_real_reset(obj); } );
 		}
 		else
 		{
@@ -286,7 +274,14 @@ function mkvc_decrypt(obj, next_read)
 	{
 		mkvc_decrypt_2(obj);
 	}
-	next_read(obj, next_read);
+	if(obj.m_last_write_promise === null)
+	{
+		next_read(obj, next_read);
+	}
+	else
+	{
+		obj.m_last_write_promise.then( function(){ next_read(obj, next_read); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to enqueue next write."); } );
+	}
 }
 
 function mkvc_init(obj)
