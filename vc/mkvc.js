@@ -508,7 +508,7 @@ function mkvc_get_args(obj)
 	const pwd = mkvc_get_text("pwd");
 	const prf = mkvc_get_select("prf");
 	const cpim = mkvc_get_checkbox("cpim");
-	const ipim = mkvc_get_num("ipim", 1, 1234, 4294967295);
+	const ipim = mkvc_get_num("ipim", 1, 485, 1000000);
 	obj.m_ifile = ifile.files[0];
 	obj.m_pwd = pwd;
 	obj.m_prf = prf;
