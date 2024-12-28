@@ -193,13 +193,14 @@ function mkvc_decrypt_5(obj, next_action, block)
 {
 	const addr = obj.m_instance.exports.mkvc_get_data_addr();
 	const size = obj.m_instance.exports.mkvc_get_data_size();
+	const len = block.byteLength;
 	console.assert(obj.m_block_buf.byteLength === 512);
-	console.assert(block.byteLength % obj.m_block_buf.byteLength === 0);
-	console.assert(block.byteLength <= size);
-	const blocks = block.byteLength / obj.m_block_buf.byteLength;
-	mkvc_memcpy(obj.m_instance.exports.memory, addr, block, 0, block.byteLength);
+	console.assert(len % obj.m_block_buf.byteLength === 0);
+	console.assert(len <= size);
+	const blocks = len / obj.m_block_buf.byteLength;
+	mkvc_memcpy(mkvc_sub_block(mkvc_block_from_memory(obj.m_instance.exports.memory), addr, len), 0, block, 0, len);
 	obj.m_instance.exports.mkvc_append(blocks);
-	const block_2 = mkvc_sub_block(mkvc_block_from_memory(obj.m_instance.exports.memory), addr, size);
+	const block_2 = mkvc_sub_block(mkvc_block_from_memory(obj.m_instance.exports.memory), addr, len);
 	mkvc_schedule_write_1(obj, next_action, block_2);
 }
 
@@ -358,14 +359,17 @@ function mkvc_init(obj)
 			(new Uint8Array(obj.m_instance.exports.memory.buffer, ptr, 1))[0] = (obj.m_pwd.byteLength >> (0 * 8)) & 0xff; ++ptr;
 			(new Uint8Array(obj.m_instance.exports.memory.buffer, ptr, 1))[0] = (obj.m_pwd.byteLength >> (1 * 8)) & 0xff; ++ptr;
 			mkvc_memcpy(obj.m_instance.exports.memory, ptr, obj.m_pwd, 0, obj.m_pwd.byteLength); ptr += obj.m_pwd.byteLength;
+			mkvc_show_msg(obj, "Deriving keys and decrypting header...");
 			const inited = obj.m_instance.exports.mkvc_init();
 			if(inited === 0)
 			{
+				mkvc_show_msg(obj, "Header decrypted.");
 				obj.m_block_idx = 0;
 				obj.m_inited = true;
 			}
 			else
 			{
+				mkvc_show_error(obj, "Could not decrypt header.");
 				obj.m_inited = false;
 			}
 		}
@@ -380,7 +384,6 @@ function mkvc_file_read_continue_chunk(obj, next_read)
 		if(obj.m_inited === false)
 		{
 			mkvc_reset(obj);
-			mkvc_show_error(obj, "Could not decrypt header.");
 		}
 		else if(obj.m_inited === true)
 		{
@@ -633,7 +636,7 @@ function mkvc_us_on_chunk(obj, reader, controller, self, bytes_cnt, chunk_done)
 		const chunk = chunk_done.value;
 		const bytes_cnt_new = bytes_cnt + chunk.length;
 		const kbs = Math.trunc(bytes_cnt_new / 1024).toLocaleString();
-		const msg = `Loading... ${kbs} kB`;
+		const msg = `Loading WASM... ${kbs} kB.`;
 		mkvc_show_msg(obj, msg);
 		controller.enqueue(chunk);
 		const p_chunk_done = reader.read();
@@ -682,7 +685,7 @@ function mkvc_on_response(obj, response_a)
 
 function mkvc_run(obj)
 {
-	mkvc_show_msg(obj, "Loading...");
+	mkvc_show_msg(obj, "Loading WASM...");
 	const p_response = window.fetch("mkvc.wasm");
 	p_response.then( function(response){ mkvc_on_response(obj, response); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to fetch WASM module."); } );
 }
