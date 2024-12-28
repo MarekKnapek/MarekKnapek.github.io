@@ -68,10 +68,10 @@ function mkvc_memcpy(dst_buff, dst_off, src_buff, src_off, amount)
 
 function mkvc_real_reset(obj)
 {
-	obj.m_ofile_fsfh = null;
+	obj.m_ofile_handle = null;
 	obj.m_ofile_name = null;
-	obj.m_ofile_fswfs = null;
-	obj.m_ofile_wsdw = null;
+	obj.m_ofile_ofs = null;
+	obj.m_ofile_writer = null;
 	obj.m_pwd = null;
 	obj.m_prf = null;
 	obj.m_cpim = null;
@@ -88,8 +88,7 @@ function mkvc_real_reset(obj)
 	obj.m_block_buf = null;
 	obj.m_block_idx = null;
 	obj.m_file_pointer = null;
-	obj.m_instancerps = null;
-	obj.m_instancerps_p = null;
+	obj.m_last_write_promise = null;
 	obj.m_write_ptr = null;
 }
 
@@ -137,23 +136,24 @@ function mkvc_show_file_write_ptr(obj)
 {
 	const kb_int = Math.floor(obj.m_write_ptr / 1024);
 	const kb_str = kb_int.toLocaleString();
-	document.getElementById("result_p").textContent = `writing ${kb_str} kB`;
+	const msg = `Writing... ${kb_str} kB.`;
+	mkvc_show_msg(obj, msg);
 }
 
 function mkvc_at_write_end(obj)
 {
 	mkvc_show_file_closing(obj);
-	const p = obj.m_ofile_wsdw.close();
+	const p = obj.m_ofile_writer.close();
 	p.then( function(){ mkvc_show_file_closed(obj); mkvc_real_reset(obj); }, function(err){ mkvc_show_file_close_failed(obj, err); mkvc_real_reset(obj); } );
 }
 
 function mkvc_reset(obj)
 {
-	if(obj.m_ofile_wsdw !== null)
+	if(obj.m_ofile_writer !== null)
 	{
-		if(obj.m_instancerps_p !== null)
+		if(obj.m_last_write_promise !== null)
 		{
-			obj.m_instancerps_p.then( function(){ mkvc_at_write_end(obj); }, function(err){ mkvc_show_file_promise_err(obj, err); mkvc_real_reset(obj); } );
+			obj.m_last_write_promise.then( function(){ mkvc_at_write_end(obj); }, function(err){ mkvc_show_file_promise_err(obj, err); mkvc_real_reset(obj); } );
 		}
 		else
 		{
@@ -168,8 +168,8 @@ function mkvc_reset(obj)
 
 function mkvc_schedule_write_impl(obj, block)
 {
-	const wp = obj.m_ofile_wsdw.write(block);
-	obj.m_instancerps_p = wp;
+	const p_write = obj.m_ofile_writer.write(block);
+	obj.m_last_write_promise = p_write;
 	obj.m_write_ptr += block.byteLength;
 	mkvc_show_file_write_ptr(obj);
 }
@@ -178,13 +178,13 @@ function mkvc_schedule_write(obj, block_shared)
 {
 	const block_private = new Uint8Array(block_shared.byteLength);
 	mkvc_memcpy(block_private, 0, block_shared, 0, block_shared.byteLength);
-	if(obj.m_instancerps_p === null)
+	if(obj.m_last_write_promise === null)
 	{
 		mkvc_schedule_write_impl(obj, block_private);
 	}
 	else
 	{
-		obj.m_instancerps_p.then( function(){ mkvc_schedule_write_impl(obj, block_private); }, function(err){ mkvc_show_file_promise_err(obj, err); } );
+		obj.m_last_write_promise.then( function(){ mkvc_schedule_write_impl(obj, block_private); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to enqueue next write."); } );
 	}
 }
 
@@ -219,7 +219,6 @@ function mkvc_decrypt_4(obj, block)
 function mkvc_decrypt_3(obj, block)
 {
 	const data_begin = 128 * 1024;
-	const size = obj.m_instance.exports.mkvc_get_data_size();
 	if(obj.m_file_pointer < data_begin)
 	{
 		const consume_want = data_begin - obj.m_file_pointer;
@@ -244,7 +243,6 @@ function mkvc_decrypt_3(obj, block)
 function mkvc_decrypt_2(obj)
 {
 	console.assert(obj.m_block_buf.byteLength === 512);
-	const size = obj.m_instance.exports.mkvc_get_data_size();
 	if(obj.m_chunk_smol_idx !== obj.m_chunk_smol_buf.byteLength)
 	{
 		console.assert(obj.m_chunk_smol_idx < obj.m_chunk_smol_buf.byteLength);
@@ -360,7 +358,7 @@ function mkvc_file_read_continue_chunk(obj, next_read)
 		if(obj.m_inited === false)
 		{
 			mkvc_reset(obj);
-			document.getElementById("result_p").textContent = "Could not decrypt header.";
+			mkvc_show_error(obj, "Could not decrypt header.");
 		}
 		else if(obj.m_inited === true)
 		{
@@ -379,7 +377,7 @@ function mkvc_file_read_on_finished(obj, next_read, value_done)
 	console.assert(obj.m_chunk_smol_buf.byteLength === 512);
 	if(value_done.done)
 	{
-		document.getElementById("ofiletxt").textContent = "done";
+		document.getElementById("ofiletxt").textContent = "";
 		mkvc_reset(obj);
 	}
 	else
@@ -389,8 +387,8 @@ function mkvc_file_read_on_finished(obj, next_read, value_done)
 		{
 			console.assert(obj.m_chunk_big_idx < obj.m_chunk_big_buf.byteLength);
 			const rem = obj.m_chunk_big_buf.byteLength - obj.m_chunk_big_idx;
-			console.assert(rem < obj.m_block_buf.byteLength);
-			const cap = obj.m_block_buf.byteLength - rem;
+			console.assert(rem < obj.m_chunk_smol_buf.byteLength);
+			const cap = obj.m_chunk_smol_buf.byteLength - rem;
 			const to_copy = mkvc_min(cap, chunk.byteLength);
 			mkvc_memcpy(obj.m_chunk_smol_buf, 0, obj.m_chunk_big_buf, obj.m_chunk_big_idx, rem);
 			mkvc_memcpy(obj.m_chunk_smol_buf, rem, chunk, 0, to_copy);
@@ -408,13 +406,17 @@ function mkvc_file_read_on_finished(obj, next_read, value_done)
 	}
 }
 
-function mkvc_file_read_on_errored(obj, err)
+function mkvc_next_read(obj, self)
 {
-	console.log(err);
-}
+	const p_value_done = obj.m_ifr.read();
+	p_value_done.then( function(value_done){ mkvc_file_read_on_finished(obj, self, value_done); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to read from input streamm."); } );
+};
 
 function mkvc_go(obj)
 {
+	const ifile = obj.m_ifile;
+	const ifs = ifile.stream();
+	const ifr = ifs.getReader();
 	obj.m_salt_buf = new Uint8Array(64);
 	obj.m_salt_idx = 0;
 	obj.m_block_buf = new Uint8Array(512);
@@ -422,20 +424,12 @@ function mkvc_go(obj)
 	obj.m_file_pointer = 0;
 	obj.m_chunk_smol_buf = new Uint8Array(512);
 	obj.m_chunk_smol_idx = obj.m_chunk_smol_buf.byteLength;
-	obj.m_instancerps = new Uint8Array(64 * 1024);
-	obj.m_instancerps_p = null;
+	obj.m_last_write_promise = null;
 	obj.m_write_ptr = 0;
-	const ifs = obj.m_ifile.stream();
 	obj.m_ifs = ifs;
-	const ifr = obj.m_ifs.getReader();
 	obj.m_ifr = ifr;
-	const rp = obj.m_ifr.read();
-	const next_read = function(obj, nx)
-	{
-		const rp = obj.m_ifr.read();
-		rp.then( function(value_done){ mkvc_file_read_on_finished(obj, nx, value_done); }, function(err){ mkvc_file_read_on_errored(obj, err); } );
-	};
-	rp.then( function(value_done){ mkvc_file_read_on_finished(obj, next_read, value_done); }, function(err){ mkvc_file_read_on_errored(obj, err); } );
+	const p_value_done = obj.m_ifr.read();
+	p_value_done.then( function(value_done){ mkvc_file_read_on_finished(obj, mkvc_next_read, value_done); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to read from input streamm."); } );
 }
 
 function mkvc_get_num(name, min_val, def_val, max_val)
@@ -486,10 +480,10 @@ function mkvc_verify(obj)
 	gud = gud && obj.m_module !== null;
 	gud = gud && obj.m_instance !== null;
 	gud = gud && obj.m_ifile !== null;
-	gud = gud && obj.m_ofile_fsfh !== null;
+	gud = gud && obj.m_ofile_handle !== null;
 	gud = gud && obj.m_ofile_name !== null;
-	gud = gud && obj.m_ofile_fswfs !== null;
-	gud = gud && obj.m_ofile_wsdw !== null;
+	gud = gud && obj.m_ofile_ofs !== null;
+	gud = gud && obj.m_ofile_writer !== null;
 	gud = gud && obj.m_pwd !== null;
 	gud = gud && obj.m_prf !== null;
 	gud = gud && obj.m_cpim !== null;
@@ -508,28 +502,35 @@ function mkvc_get_args(obj)
 	const is_ifile = ifile.value !== "";
 	if(!is_ifile)
 	{
-		return;
+		mkvc_show_error(obj, "Please select input file.");
+		return false;
 	}
 	if(ifile.files.length !== 1)
 	{
-		return;
+		mkvc_show_error(obj, "Please select single input file.");
+		return false;
 	}
 	const pwd = mkvc_get_text("pwd");
 	const prf = mkvc_get_select("prf");
 	const cpim = mkvc_get_checkbox("cpim");
-	const ipim = mkvc_get_num("ipim", 1, 500 * 1000, 4294967295);
+	const ipim = mkvc_get_num("ipim", 1, 1234, 4294967295);
 	obj.m_ifile = ifile.files[0];
 	obj.m_pwd = pwd;
 	obj.m_prf = prf;
 	obj.m_cpim = cpim;
 	obj.m_ipim = ipim;
+	return true;
 }
 
 function mkvc_decrypt_on_click(obj)
 {
-	mkvc_get_args(obj);
+	if(!mkvc_get_args(obj))
+	{
+		return;
+	}
 	if(!mkvc_verify(obj))
 	{
+		mkvc_show_error(obj, "Something went wrong.");
 		mkvc_reset(obj);
 		document.getElementById("ofiletxt").textContent = "";
 		return;
@@ -545,54 +546,31 @@ function mkvc_cpim_on_click(obj)
 	ipim.disabled = obj.cpim;
 }
 
-function mkvc_ofile_reset(obj)
+function mkvc_ofile_on_ofs(obj, ofs)
 {
-	obj.m_ofile_fsfh = null;
-	obj.m_ofile_name = null;
-	obj.m_ofile_fswfs = null;
-	obj.m_ofile_wsdw = null;
-	document.getElementById("ofiletxt").textContent = "";
-}
-
-function mkvc_ofile_on_error_all(obj)
-{
-	mkvc_ofile_reset(obj);
-}
-
-function mkvc_ofile_on_error_b(obj, err)
-{
-	mkvc_ofile_on_error_all(obj);
-}
-
-function mkvc_ofile_on_error_a(obj, err)
-{
-	mkvc_ofile_on_error_all(obj);
-}
-
-function mkvc_ofile_on_fswfs(obj, fswfs)
-{
-	const wsdw = fswfs.getWriter();
-	obj.m_ofile_fswfs = fswfs;
-	obj.m_ofile_wsdw = wsdw;
+	const writer = ofs.getWriter();
+	obj.m_ofile_ofs = ofs;
+	obj.m_ofile_writer = writer;
 	document.getElementById("ofiletxt").textContent = obj.m_ofile_name;
 }
 
-function mkvc_ofile_on_selected(obj, fsfh)
+function mkvc_ofile_on_selected(obj, file_system_file_handle)
 {
-	if(fsfh.kind === "file")
+	if(file_system_file_handle.kind !== "file")
 	{
-		obj.m_ofile_fsfh = fsfh;
-		obj.m_ofile_name = fsfh.name;
-		const fswfsp = fsfh.createWritable();
-		fswfsp.then( function(fswfs){ mkvc_ofile_on_fswfs(obj, fswfs); }, function(err){ mkvc_ofile_on_error_b(obj, err); } );
+		mkvc_show_error(obj, "Selected thing is not a file.");
+		return;
 	}
+	obj.m_ofile_handle = file_system_file_handle;
+	obj.m_ofile_name = file_system_file_handle.name;
+	const p_ofs = file_system_file_handle.createWritable();
+	p_ofs.then( function(ofs){ mkvc_ofile_on_ofs(obj, ofs); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to create writeable output stream."); } );
 }
 
 function mkvc_ofile_on_click(obj)
 {
-	mkvc_ofile_reset(obj);
-	const fsfhp = window.showSaveFilePicker();
-	fsfhp.then( function(fsfh){ mkvc_ofile_on_selected(obj, fsfh); }, function(err){ mkvc_ofile_on_error_a(obj, err); } );
+	const p_file_system_file_handle = window.showSaveFilePicker();
+	p_file_system_file_handle.then( function(file_system_file_handle){ mkvc_ofile_on_selected(obj, file_system_file_handle); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to get save file handle."); } );
 }
 
 function mkvc_form_on_submit(obj)
@@ -678,7 +656,7 @@ function mkvc_on_response(obj, response_a)
 
 function mkvc_run(obj)
 {
-	document.getElementById("result_p").textContent = "Loading...";
+	mkvc_show_msg(obj, "Loading...");
 	const p_response = window.fetch("mkvc.wasm");
 	p_response.then( function(response){ mkvc_on_response(obj, response); }, function(reason){ mkvc_show_promise_reason(obj, reason, "Failed to fetch WASM module."); } );
 }
@@ -690,10 +668,10 @@ function mkvc_make()
 		m_module: null,
 		m_instance: null,
 		m_ifile: null,
-		m_ofile_fsfh: null,
+		m_ofile_handle: null,
 		m_ofile_name: null,
-		m_ofile_fswfs: null,
-		m_ofile_wsdw: null,
+		m_ofile_ofs: null,
+		m_ofile_writer: null,
 		m_pwd: null,
 		m_prf: null,
 		m_cpim: null,
@@ -710,8 +688,7 @@ function mkvc_make()
 		m_block_buf: null,
 		m_block_idx: null,
 		m_file_pointer: null,
-		m_instancerps: null,
-		m_instancerps_p: null,
+		m_last_write_promise: null,
 		m_write_ptr: null,
 	};
 	mkvc_reset(obj);
