@@ -20,6 +20,97 @@ function mkch_app_show_err_reason(app, reason, msg)
 	mkch_app_show_err_msg(app, message);
 }
 
+function mkch_app_wasm_call_generic(app, fnc, arg)
+{
+	"use strict";
+	const res = app.m_wasm_instance.exports.majn(fnc, arg);
+	return res;
+}
+
+function mkch_app_wasm_call_get_buffer_buf(app)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 0, 0);
+	return res;
+}
+
+function mkch_app_wasm_call_get_buffer_len(app)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 1, 0);
+	return res;
+}
+
+function mkch_app_wasm_call_get_alg_count(app)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 2, 0);
+	return res;
+}
+
+function mkch_app_wasm_call_get_default_alg(app)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 3, 0);
+	return res;
+}
+
+function mkch_app_wasm_call_get_alg_str_buf(app, arg)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 4, arg);
+	return res;
+}
+
+function mkch_app_wasm_call_get_alg_str_len(app, arg)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 5, arg);
+	return res;
+}
+
+function mkch_app_wasm_call_get_alg_key_buf(app, arg)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 6, arg);
+	return res;
+}
+
+function mkch_app_wasm_call_get_alg_key_len(app, arg)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 7, arg);
+	return res;
+}
+
+function mkch_app_wasm_call_get_digest_len(app, arg)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 8, arg);
+	return res;
+}
+
+function mkch_app_wasm_call_init(app, arg)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 9, arg);
+	return res;
+}
+
+function mkch_app_wasm_call_append(app, arg)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 10, arg);
+	return res;
+}
+
+function mkch_app_wasm_call_finish(app, arg)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 11, arg);
+	return res;
+}
+
 function mkch_util_is_integer_non_negative(x)
 {
 	"use strict";
@@ -101,8 +192,8 @@ function mkch_app_get_mem(app, off, len)
 function mkch_app_get_buf(app)
 {
 	"use strict";
-	const off = app.m_wasm_instance.exports.mk_clib_hasher_get_buffer_buf();
-	const len = app.m_wasm_instance.exports.mk_clib_hasher_get_buffer_len();
+	const off = mkch_app_wasm_call_get_buffer_buf(app);
+	const len = mkch_app_wasm_call_get_buffer_len(app);
 	const buf = mkch_app_get_mem(app, off, len);
 	return buf;
 }
@@ -114,9 +205,9 @@ function mkch_job_progress(job)
 	const app = job.m_app;
 	if(job.m_file_finished === job.m_file_size)
 	{
-		const finished = app.m_wasm_instance.exports.mk_clib_hasher_finish(job.m_args.m_xof_len);
+		const finished = mkch_app_wasm_call_finish(app, job.m_args.m_xof_len);
 		console.assert(finished === 0);
-		const digest_len = app.m_wasm_instance.exports.mk_clib_hasher_get_digest_len(job.m_args.m_alg_idx);
+		const digest_len = mkch_app_wasm_call_get_digest_len(app, job.m_args.m_alg_idx);
 		const out_len = digest_len == 0 ? job.m_args.m_xof_len : digest_len;
 		const digest_buf = mkch_util_sub_block(mkch_app_get_buf(app), 0, out_len);
 		const digest_str = mkch_util_buf_to_str(digest_buf);
@@ -150,7 +241,7 @@ function mkch_job_on_chunk_read_finished(job)
 		const chunk_size = chunk_data.byteLength;
 		const mem = mkch_app_get_buf(app);
 		mkch_util_memcpy(mem, 0, chunk_data, 0, chunk_size);
-		const appended = app.m_wasm_instance.exports.mk_clib_hasher_append(chunk_size);
+		const appended = mkch_app_wasm_call_append(app, chunk_size);
 		console.assert(appended === 0);
 		job.m_file_finished += chunk_size;
 		job.m_file_iorps.shift();
@@ -221,7 +312,7 @@ function mkch_job_open_file(job)
 	document.getElementById("resulta").textContent = job.m_args.m_alg_str;
 	document.getElementById("resultb").textContent = "Starting...";
 	document.getElementById("resulto").hidden = false;
-	const inited = app.m_wasm_instance.exports.mk_clib_hasher_init(job.m_args.m_alg_idx);
+	const inited = mkch_app_wasm_call_init(app, job.m_args.m_alg_idx);
 	console.assert(inited === 0);
 	const file_obj = job.m_args.m_filee.files[0];
 	const file_size = file_obj.size;
@@ -249,25 +340,25 @@ function mkch_job_compute_text(job)
 	"use strict";
 	console.assert(job.m_app.m_job === job);
 	const app = job.m_app;
-	const buffer_buf = app.m_wasm_instance.exports.mk_clib_hasher_get_buffer_buf();
-	const buffer_len = app.m_wasm_instance.exports.mk_clib_hasher_get_buffer_len();
+	const buffer_buf = mkch_app_wasm_call_get_buffer_buf(app);
+	const buffer_len = mkch_app_wasm_call_get_buffer_len(app);
 	console.assert(buffer_buf != 0);
 	console.assert(buffer_len >= 64 * 1024);
 	const text_len = job.m_args.m_text_buf === null ? 0 : job.m_args.m_text_buf.byteLength;
 	console.assert(text_len <= buffer_len);
 	console.assert(job.m_args.m_xof_len <= buffer_len);
-	const digest_len = app.m_wasm_instance.exports.mk_clib_hasher_get_digest_len(job.m_args.m_alg_idx);
+	const digest_len = mkch_app_wasm_call_get_digest_len(app, job.m_args.m_alg_idx);
 	console.assert(digest_len == 0 || (digest_len >= 16 && digest_len <= 64));
-	const inited = app.m_wasm_instance.exports.mk_clib_hasher_init(job.m_args.m_alg_idx);
+	const inited = mkch_app_wasm_call_init(app, job.m_args.m_alg_idx);
 	console.assert(inited === 0);
 	const mem = mkch_app_get_buf(app);
 	if(text_len != 0)
 	{
 		mkch_util_memcpy(mem, 0, job.m_args.m_text_buf, 0, job.m_args.m_text_buf.byteLength);
 	}
-	const appended = app.m_wasm_instance.exports.mk_clib_hasher_append(text_len);
+	const appended = mkch_app_wasm_call_append(app, text_len);
 	console.assert(appended === 0);
-	const finished = app.m_wasm_instance.exports.mk_clib_hasher_finish(job.m_args.m_xof_len);
+	const finished = mkch_app_wasm_call_finish(app, job.m_args.m_xof_len);
 	console.assert(finished === 0);
 	const digest_buf = mkch_app_get_mem(app, buffer_buf, digest_len == 0 ? job.m_args.m_xof_len : digest_len);
 	const digest_str = mkch_util_buf_to_str(digest_buf);
@@ -353,7 +444,7 @@ function mkch_app_prepare_args(app)
 	const alge = document.getElementById("alg");
 	const alg_idx = parseInt(alge.value, 10);
 	console.assert(mkch_util_is_integer_non_negative(alg_idx));
-	const digest_len = app.m_wasm_instance.exports.mk_clib_hasher_get_digest_len(alg_idx);
+	const digest_len = mkch_app_wasm_call_get_digest_len(app, alg_idx);
 	const is_xof = digest_len == 0;
 	const xof_len_base = 64;
 	let xof_len_w;
@@ -449,12 +540,12 @@ function mkch_app_parse_url_fragment_query(app)
 					{
 						const val = f.substring(0, amp);
 						f = f.substring(amp + 1);
-						arr.push({ key: key, val: val, });
+						arr.push({ m_key: key, m_val: val, });
 					}
 					else
 					{
 						const val = f;
-						arr.push({ key: key, val: val, });
+						arr.push({ m_key: key, m_val: val, });
 						break;
 					}
 				}
@@ -477,9 +568,9 @@ function mkch_app_parse_url(app)
 	"use strict";
 	let want_refresh = false;
 	const keyvals = mkch_app_parse_url_fragment_query(app);
-	if(keyvals.length >= 1 && keyvals[0].key == "h")
+	if(keyvals.length >= 1 && keyvals[0].m_key == "h")
 	{
-		const val_a = keyvals[0].val;
+		const val_a = keyvals[0].m_val;
 		const val_b = val_a.replace("-", "_");
 		let idx = 0;
 		for(const key_arr of app.m_hash_keys)
@@ -497,14 +588,14 @@ function mkch_app_parse_url(app)
 	}
 	let hast = false;
 	let t;
-	if(keyvals.length == 1 && keyvals[0].key == "t")
+	if(keyvals.length == 1 && keyvals[0].m_key == "t")
 	{
-		t = keyvals[0].val;
+		t = keyvals[0].m_val;
 		hast = true;
 	}
-	else if(keyvals.length == 2 && keyvals[1].key == "t")
+	else if(keyvals.length == 2 && keyvals[1].m_key == "t")
 	{
-		t = keyvals[1].val;
+		t = keyvals[1].m_val;
 		hast = true;
 	}
 	if(hast)
@@ -538,21 +629,21 @@ function mkch_app_populate_algs(app)
 {
 	"use strict";
 	const alge = document.getElementById("alg");
-	const alg_count = app.m_wasm_instance.exports.mk_clib_hasher_get_alg_count();
+	const alg_count = mkch_app_wasm_call_get_alg_count(app);
 	for(let i = 0; i != alg_count; ++i)
 	{
-		const str_buf = app.m_wasm_instance.exports.mk_clib_hasher_get_alg_str_buf(i);
-		const str_len = app.m_wasm_instance.exports.mk_clib_hasher_get_alg_str_len(i);
+		const str_buf = mkch_app_wasm_call_get_alg_str_buf(app, i);
+		const str_len = mkch_app_wasm_call_get_alg_str_len(app, i);
 		const str_arr = mkch_app_get_mem(app, str_buf, str_len);
 		const str_obj = new TextDecoder().decode(str_arr);
 		const algi = new Option(str_obj, i.toString());
 		alge.add(algi, undefined);
-		const key_buf = app.m_wasm_instance.exports.mk_clib_hasher_get_alg_key_buf(i);
-		const key_len = app.m_wasm_instance.exports.mk_clib_hasher_get_alg_key_len(i);
+		const key_buf = mkch_app_wasm_call_get_alg_key_buf(app, i);
+		const key_len = mkch_app_wasm_call_get_alg_key_len(app, i);
 		const key_arr = mkch_app_get_mem(app, key_buf, key_len);
 		app.m_hash_keys.push(key_arr);
 	}
-	const default_alg = app.m_wasm_instance.exports.mk_clib_hasher_get_default_alg();
+	const default_alg = mkch_app_wasm_call_get_default_alg(app);
 	alge.selectedIndex = default_alg;
 }
 
@@ -607,6 +698,7 @@ function mkch_app_on_reader_start(app, reader, controller)
 
 function mkch_app_print(app, ptr, len)
 {
+	"use strict";
 	const str_arr = mkch_app_get_mem(app, ptr, len);
 	const str_obj = new TextDecoder().decode(str_arr);
 	document.getElementById("msg").textContent = str_obj;
