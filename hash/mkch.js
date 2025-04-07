@@ -452,7 +452,7 @@ function mkch_parse_url(app)
 		for(const key_arr of app.m_hash_keys)
 		{
 			const key_str = new TextDecoder().decode(key_arr).toLowerCase();
-			if(val == key_str)
+			if(val == key_str || val.replace("-", "_") == key_str)
 			{
 				const alge = document.getElementById("alg");
 				alge.value = idx.toString();
