@@ -701,7 +701,7 @@ function mkch_app_print(app, ptr, len)
 	"use strict";
 	const str_arr = mkch_app_get_mem(app, ptr, len);
 	const str_obj = new TextDecoder().decode(str_arr);
-	document.getElementById("msg").textContent = str_obj;
+	mkch_app_show_msg(app, str_obj);
 }
 
 function mkch_app_on_wasm_fetch_gud(app, response)
