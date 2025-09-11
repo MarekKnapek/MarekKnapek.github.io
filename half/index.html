@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" type="text/css" href="half.css">
+		<script src="half.js"></script>
+		<title>Half Analyzer</title>
+	</head>
+	<body>
+		<span>Half Analyzer</span>
+		<br>
+		<br>
+		<a href="..">back</a>
+		<br>
+		<br>
+		<form id="form">
+			<table class="outer">
+				<tr>
+					<th>
+						<span>Sign</span>
+					</th>
+					<th>
+						<span>Exponent</span>
+					</th>
+					<th>
+						<span>Mantissa</span>
+					</th>
+				</tr>
+				<tr>
+					<td>
+						<table id="sign" class="inner">
+							<tr/>
+						</table>
+					</td>
+					<td>
+						<table id="exp" class="inner">
+							<tr/>
+						</table>
+					</td>
+					<td>
+						<table id="mts" class="inner">
+							<tr/>
+						</table>
+					</td>
+				</tr>
+			</table>
+		</form>
+		<br>
+		<br>
+		<table class="output">
+			<tr>
+				<td>
+					<span>Bin</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_bin"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Hex</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_hex"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Dec unsigned</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_uns"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Dec signed</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_sig"></span>
+				</td>
+			</tr>
+			<tr class="newsection">
+				<td>
+					<span>Sign</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_sgn"></span>
+				</td>
+			</tr>
+			<tr class="newsection">
+				<td>
+					<span>Exponent bin</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_exp_bin"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Exponent hex</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_exp_hex"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Exponent dec</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_exp_dec"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Exponent decoded</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_exp_dcd"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Type</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_type"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Implied one</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_one"></span>
+				</td>
+			</tr>
+			<tr class="newsection">
+				<td>
+					<span>Mantissa bin</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_mts_bin"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Mantissa hex</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_mts_hex"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Mantissa dec</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_mts_dec"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Mantissa decoded</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_mts_dcd"></span>
+				</td>
+			</tr>
+			<tr class="newsection">
+				<td>
+					<span>Value</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_val"></span>
+				</td>
+			</tr>
+		</table>
+		<br>
+		<br>
+		<span>Source code available at <a href="https://github.com/MarekKnapek/mk_clib">github.com/MarekKnapek/mk_clib</a> and at <a href="https://github.com/MarekKnapek/MarekKnapek.github.io">github.com/MarekKnapek/MarekKnapek.github.io</a>.</span>
+	</body>
+</html>
