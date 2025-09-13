@@ -1,128 +1,359 @@
 "use strict";
 
-let g_analyzer;
 
-function float_mylog(a, b)
+function float_wasm_call_generic(analyzer, fn_id, arg)
 {
-  return Math.log(b) / Math.log(a);
+	"use strict";
+	return analyzer.wi.exports.majn(fn_id, arg);
 }
 
-function quad_on_changed(bit, idx)
+function float_wasm_call_analyze(analyzer)
 {
-	const flt_bits = 128;
-	const flt_mts_bits = 112;
-	const flt_exp_bits = flt_bits - flt_mts_bits - 1;
-	const flt_exp_type = Math.ceil(flt_exp_bits / 8) * 8;
-	const bin_offset = flt_bits / 8;
-	const bin_len = flt_bits;
-	const hex_offset = bin_offset + bin_len;
-	const hex_len = flt_bits / 4;
-	const uns_offset = hex_offset + hex_len + 1;
-	const uns_len = Math.ceil(float_mylog(10, Math.pow(2, flt_bits)));
-	const sig_offset = uns_offset + uns_len + 1;
-	const sig_len = uns_len + 1;
-	const sgn_offset = sig_offset + sig_len;
-	const sgn_len = 1;
-	const exp_bin_off = sgn_offset + sgn_len;
-	const exp_bin_len = flt_exp_type;
-	const exp_hex_off = exp_bin_off + exp_bin_len;
-	const exp_hex_len = Math.ceil(flt_exp_bits / 8) * 2;
-	const exp_dec_off = exp_hex_off + exp_hex_len + 1;
-	const exp_dec_len = Math.ceil(float_mylog(10, Math.pow(2, Math.ceil(flt_exp_bits / 8) * 8)));
-	const exp_dcd_off = exp_dec_off + exp_dec_len + 1;
-	const exp_dcd_len = exp_dec_len + 1;
-	const type_off = exp_dcd_off + exp_dcd_len;
-	const type_len = 1;
-	const one_off = type_off + type_len;
-	const one_len = 1;
-	const mts_bin_off = one_off + one_len;
-	const mts_bin_len = flt_bits;
-	const mts_hex_off = mts_bin_off + mts_bin_len;
-	const mts_hex_len = flt_bits / 4;
-	const mts_dec_off = mts_hex_off + mts_hex_len + 1;
-	const mts_dec_len = uns_len;
-	const mts_dcd_off = mts_dec_off + mts_dec_len + 1;
-	const mts_dcd_len = 1 + 1 + flt_mts_bits;
-	const val_offset = mts_dcd_off + mts_dcd_len + 1;
-	const val_len = 16497;
+	"use strict";
+	return float_wasm_call_generic(analyzer, 0, 0);
+}
 
+function float_wasm_call_get_buffer_buf(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 1, 0);
+}
+
+function float_wasm_call_get_buffer_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 2, 0);
+}
+
+function float_wasm_call_get_all_text_bin_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 3, 0);
+}
+
+function float_wasm_call_get_all_text_bin_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 4, 0);
+}
+
+function float_wasm_call_get_all_text_hex_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 5, 0);
+}
+
+function float_wasm_call_get_all_text_hex_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 6, 0);
+}
+
+function float_wasm_call_get_all_text_dec_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 7, 0);
+}
+
+function float_wasm_call_get_all_text_dec_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 8, 0);
+}
+
+function float_wasm_call_get_all_text_sgn_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 9, 0);
+}
+
+function float_wasm_call_get_all_text_sgn_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 10, 0);
+}
+
+function float_wasm_call_get_sign_text_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 11, 0);
+}
+
+function float_wasm_call_get_sign_text_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 12, 0);
+}
+
+function float_wasm_call_get_exponent_text_bin_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 13, 0);
+}
+
+function float_wasm_call_get_exponent_text_bin_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 14, 0);
+}
+
+function float_wasm_call_get_exponent_text_hex_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 15, 0);
+}
+
+function float_wasm_call_get_exponent_text_hex_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 16, 0);
+}
+
+function float_wasm_call_get_exponent_text_dec_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 17, 0);
+}
+
+function float_wasm_call_get_exponent_text_dec_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 18, 0);
+}
+
+function float_wasm_call_get_exponent_text_decoded_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 19, 0);
+}
+
+function float_wasm_call_get_exponent_text_decoded_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 20, 0);
+}
+
+function float_wasm_call_get_exponent_text_type_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 21, 0);
+}
+
+function float_wasm_call_get_exponent_text_type_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 22, 0);
+}
+
+function float_wasm_call_get_exponent_text_implied_one_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 23, 0);
+}
+
+function float_wasm_call_get_exponent_text_implied_one_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 24, 0);
+}
+
+function float_wasm_call_get_mantissa_text_bin_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 25, 0);
+}
+
+function float_wasm_call_get_mantissa_text_bin_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 26, 0);
+}
+
+function float_wasm_call_get_mantissa_text_hex_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 27, 0);
+}
+
+function float_wasm_call_get_mantissa_text_hex_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 28, 0);
+}
+
+function float_wasm_call_get_mantissa_text_dec_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 29, 0);
+}
+
+function float_wasm_call_get_mantissa_text_dec_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 30, 0);
+}
+
+function float_wasm_call_get_mantissa_text_dcd_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 31, 0);
+}
+
+function float_wasm_call_get_mantissa_text_dcd_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 32, 0);
+}
+
+function float_wasm_call_get_value_text_beg(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 33, 0);
+}
+
+function float_wasm_call_get_value_text_len(analyzer)
+{
+	"use strict";
+	return float_wasm_call_generic(analyzer, 34, 0);
+}
+
+function float_on_changed(analyzer, bit, idx)
+{
+	"use strict";
 	const byte_idx = Math.floor(idx / 8);
 	const bit_idx = idx % 8;
 	if(bit.checked)
 	{
-		g_analyzer.arr[byte_idx] = g_analyzer.arr[byte_idx] | (1 << bit_idx);
+		analyzer.arr[byte_idx] = analyzer.arr[byte_idx] | (1 << bit_idx);
 	}
 	else
 	{
-		g_analyzer.arr[byte_idx] = g_analyzer.arr[byte_idx] &~ (1 << bit_idx);
+		analyzer.arr[byte_idx] = analyzer.arr[byte_idx] &~ (1 << bit_idx);
 	}
-	const analyzer = g_analyzer.wi.exports.quad_analyzer_analyze(g_analyzer.arr[0], g_analyzer.arr[1], g_analyzer.arr[2], g_analyzer.arr[3], g_analyzer.arr[4], g_analyzer.arr[5], g_analyzer.arr[6], g_analyzer.arr[7], g_analyzer.arr[8], g_analyzer.arr[9], g_analyzer.arr[10], g_analyzer.arr[11], g_analyzer.arr[12], g_analyzer.arr[13], g_analyzer.arr[14], g_analyzer.arr[15]);
-	const bin_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + bin_offset, analyzer + bin_offset + bin_len); const binstr = new TextDecoder().decode(bin_buf);
-	const hex_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + hex_offset, analyzer + hex_offset + hex_len); const hexstr = new TextDecoder().decode(hex_buf);
-	const le1_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + uns_offset - 1, analyzer + uns_offset + 0);
-	const uns_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + uns_offset, analyzer + uns_offset + new Uint8Array(le1_buf)[0]); const unsstr = new TextDecoder().decode(uns_buf);
-	const le2_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + sig_offset - 1, analyzer + sig_offset + 0);
-	const sig_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + sig_offset, analyzer + sig_offset + new Uint8Array(le2_buf)[0]); const sigstr = new TextDecoder().decode(sig_buf);
-	const sgn_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + sgn_offset, analyzer + sgn_offset + 1); const sgn_val = new Uint8Array(sgn_buf); console.assert(sgn_val == 0 || sgn_val == 1); const sgn_str = sgn_val == 0 ? "Positive" : "Negative";
-	const exp_bin_buff = g_analyzer.wi.exports.memory.buffer.slice(analyzer + exp_bin_off + (flt_exp_type - flt_exp_bits), analyzer + exp_bin_off + (flt_exp_type - flt_exp_bits) + flt_exp_bits); const exp_bin_str = new TextDecoder().decode(exp_bin_buff);
-	const exp_hex_buff = g_analyzer.wi.exports.memory.buffer.slice(analyzer + exp_hex_off + (flt_exp_type / 4 - Math.ceil(flt_exp_bits / 4)), analyzer + exp_hex_off + (flt_exp_type / 4 - Math.ceil(flt_exp_bits / 4)) + Math.ceil(flt_exp_bits / 4)); const exp_hex_str = new TextDecoder().decode(exp_hex_buff);
-	const le3_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + exp_dec_off - 1, analyzer + exp_dec_off + 0);
-	const exp_dec_buff = g_analyzer.wi.exports.memory.buffer.slice(analyzer + exp_dec_off, analyzer + exp_dec_off + new Uint8Array(le3_buf)[0]); const exp_dec_str = new TextDecoder().decode(exp_dec_buff);
-	const le4_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + exp_dcd_off - 1, analyzer + exp_dcd_off + 0);
-	const exp_dcd_buff = g_analyzer.wi.exports.memory.buffer.slice(analyzer + exp_dcd_off, analyzer + exp_dcd_off + new Uint8Array(le4_buf)[0]); const exp_dcd_str = new TextDecoder().decode(exp_dcd_buff);
-	const type_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + type_off, analyzer + type_off + 1); const type_val = new Uint8Array(type_buf); console.assert(type_val >= 0 || type_val <= 4); const type_str = type_val == 0 ? "Zero" : (type_val == 1 ? "Denormal" : (type_val == 2 ? "Infinity" : (type_val == 3 ? "NaN" : "Normal")));
-	const one_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + one_off, analyzer + one_off + 1); const one_val = new Uint8Array(one_buf); console.assert(one_val == 0 || one_val == 1); const one_str = (type_val == 1 || type_val == 4) ? ((one_val == 0) ? "No" : "Yes") : "n/a";
-	const mts_bin_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + mts_bin_off + (flt_bits - flt_mts_bits), analyzer + mts_bin_off + (flt_bits - flt_mts_bits) + flt_mts_bits); const mts_bin_str = new TextDecoder().decode(mts_bin_buf);
-	const mts_hex_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + mts_hex_off + (flt_bits / 8 * 2 - Math.ceil(flt_mts_bits / 4)), analyzer + mts_hex_off + (flt_bits / 8 * 2 - Math.ceil(flt_mts_bits / 4)) + Math.ceil(flt_mts_bits / 4)); const mts_hex_str = new TextDecoder().decode(mts_hex_buf);
-	const le5_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + mts_dec_off - 1, analyzer + mts_dec_off + 0);
-	const mts_dec_buff = g_analyzer.wi.exports.memory.buffer.slice(analyzer + mts_dec_off, analyzer + mts_dec_off + new Uint8Array(le5_buf)[0]); const mts_dec_str = new TextDecoder().decode(mts_dec_buff);
-	const le6_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + mts_dcd_off - 1, analyzer + mts_dcd_off + 0);
-	const mts_dcd_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + mts_dcd_off, analyzer + mts_dcd_off + new Uint8Array(le6_buf)[0]); const mts_dcd_str = new TextDecoder().decode(mts_dcd_buf);
-	const le7_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + val_offset + 1 - 2 + 0, analyzer + val_offset + 1 - 2 + 1);
-	const le8_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + val_offset + 1 - 2 + 1, analyzer + val_offset + 1 - 2 + 2);
-	const val_buf = g_analyzer.wi.exports.memory.buffer.slice(analyzer + val_offset + 1, analyzer + val_offset + 1 + (((new Uint8Array(le7_buf)[0]) << 0) | ((new Uint8Array(le8_buf)[0]) << 8))); const valstr = new TextDecoder().decode(val_buf);
-	document.getElementById("o_bin").textContent = binstr;
-	document.getElementById("o_hex").textContent = hexstr;
-	document.getElementById("o_uns").textContent = unsstr;
-	document.getElementById("o_sig").textContent = sigstr;
-	document.getElementById("o_sgn").textContent = sgn_str;
-	document.getElementById("o_exp_bin").textContent = exp_bin_str;
-	document.getElementById("o_exp_hex").textContent = exp_hex_str;
-	document.getElementById("o_exp_dec").textContent = exp_dec_str;
-	document.getElementById("o_exp_dcd").textContent = exp_dcd_str;
-	document.getElementById("o_type").textContent = type_str;
-	document.getElementById("o_one").textContent = one_str;
-	document.getElementById("o_mts_bin").textContent = mts_bin_str;
-	document.getElementById("o_mts_hex").textContent = mts_hex_str;
-	document.getElementById("o_mts_dec").textContent = mts_dec_str;
-	document.getElementById("o_mts_dcd").textContent = mts_dcd_str;
-	document.getElementById("o_val").textContent = valstr;
+	const target_buf = float_wasm_call_get_buffer_buf(analyzer);
+	const target_len = float_wasm_call_get_buffer_len(analyzer);
+	const target_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, target_buf, target_len);
+	const n = 128 / 8;
+	for(let i = 0; i != n; ++i)
+	{
+		target_obj[i] = analyzer.arr[i];
+	}
+	const analyzed = float_wasm_call_analyze(analyzer);
+	console.assert(analyzed == 0);
+
+	const all_text_bin_beg = float_wasm_call_get_all_text_bin_beg(analyzer);
+	const all_text_bin_len = float_wasm_call_get_all_text_bin_len(analyzer);
+	const all_text_bin_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, all_text_bin_beg, all_text_bin_len);
+	const all_text_bin_str = new TextDecoder().decode(all_text_bin_obj);
+	document.getElementById("o_bin").textContent = all_text_bin_str;
+	const all_text_hex_beg = float_wasm_call_get_all_text_hex_beg(analyzer);
+	const all_text_hex_len = float_wasm_call_get_all_text_hex_len(analyzer);
+	const all_text_hex_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, all_text_hex_beg, all_text_hex_len);
+	const all_text_hex_str = new TextDecoder().decode(all_text_hex_obj);
+	document.getElementById("o_hex").textContent = all_text_hex_str;
+	const all_text_dec_beg = float_wasm_call_get_all_text_dec_beg(analyzer);
+	const all_text_dec_len = float_wasm_call_get_all_text_dec_len(analyzer);
+	const all_text_dec_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, all_text_dec_beg, all_text_dec_len);
+	const all_text_dec_str = new TextDecoder().decode(all_text_dec_obj);
+	document.getElementById("o_dec").textContent = all_text_dec_str;
+	const all_text_sgn_beg = float_wasm_call_get_all_text_sgn_beg(analyzer);
+	const all_text_sgn_len = float_wasm_call_get_all_text_sgn_len(analyzer);
+	const all_text_sgn_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, all_text_sgn_beg, all_text_sgn_len);
+	const all_text_sgn_str = new TextDecoder().decode(all_text_sgn_obj);
+	document.getElementById("o_sgn").textContent = all_text_sgn_str;
+
+	const sign_text_beg = float_wasm_call_get_sign_text_beg(analyzer);
+	const sign_text_len = float_wasm_call_get_sign_text_len(analyzer);
+	const sign_text_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, sign_text_beg, sign_text_len);
+	const sign_text_str = new TextDecoder().decode(sign_text_obj);
+	document.getElementById("o_sign").textContent = sign_text_str;
+
+	const exponent_text_bin_beg = float_wasm_call_get_exponent_text_bin_beg(analyzer);
+	const exponent_text_bin_len = float_wasm_call_get_exponent_text_bin_len(analyzer);
+	const exponent_text_bin_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, exponent_text_bin_beg, exponent_text_bin_len);
+	const exponent_text_bin_str = new TextDecoder().decode(exponent_text_bin_obj);
+	document.getElementById("o_exp_bin").textContent = exponent_text_bin_str;
+	const exponent_text_hex_beg = float_wasm_call_get_exponent_text_hex_beg(analyzer);
+	const exponent_text_hex_len = float_wasm_call_get_exponent_text_hex_len(analyzer);
+	const exponent_text_hex_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, exponent_text_hex_beg, exponent_text_hex_len);
+	const exponent_text_hex_str = new TextDecoder().decode(exponent_text_hex_obj);
+	document.getElementById("o_exp_hex").textContent = exponent_text_hex_str;
+	const exponent_text_dec_beg = float_wasm_call_get_exponent_text_dec_beg(analyzer);
+	const exponent_text_dec_len = float_wasm_call_get_exponent_text_dec_len(analyzer);
+	const exponent_text_dec_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, exponent_text_dec_beg, exponent_text_dec_len);
+	const exponent_text_dec_str = new TextDecoder().decode(exponent_text_dec_obj);
+	document.getElementById("o_exp_dec").textContent = exponent_text_dec_str;
+	const exponent_text_decoded_beg = float_wasm_call_get_exponent_text_decoded_beg(analyzer);
+	const exponent_text_decoded_len = float_wasm_call_get_exponent_text_decoded_len(analyzer);
+	const exponent_text_decoded_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, exponent_text_decoded_beg, exponent_text_decoded_len);
+	const exponent_text_decoded_str = new TextDecoder().decode(exponent_text_decoded_obj);
+	document.getElementById("o_exp_dcd").textContent = exponent_text_decoded_str;
+	const exponent_text_type_beg = float_wasm_call_get_exponent_text_type_beg(analyzer);
+	const exponent_text_type_len = float_wasm_call_get_exponent_text_type_len(analyzer);
+	const exponent_text_type_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, exponent_text_type_beg, exponent_text_type_len);
+	const exponent_text_type_str = new TextDecoder().decode(exponent_text_type_obj);
+	document.getElementById("o_type").textContent = exponent_text_type_str;
+	const exponent_text_implied_one_beg = float_wasm_call_get_exponent_text_implied_one_beg(analyzer);
+	const exponent_text_implied_one_len = float_wasm_call_get_exponent_text_implied_one_len(analyzer);
+	const exponent_text_implied_one_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, exponent_text_implied_one_beg, exponent_text_implied_one_len);
+	const exponent_text_implied_one_str = new TextDecoder().decode(exponent_text_implied_one_obj);
+	document.getElementById("o_one").textContent = exponent_text_implied_one_str;
+
+	const mantissa_text_bin_beg = float_wasm_call_get_mantissa_text_bin_beg(analyzer);
+	const mantissa_text_bin_len = float_wasm_call_get_mantissa_text_bin_len(analyzer);
+	const mantissa_text_bin_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, mantissa_text_bin_beg, mantissa_text_bin_len);
+	const mantissa_text_bin_str = new TextDecoder().decode(mantissa_text_bin_obj);
+	document.getElementById("o_mts_bin").textContent = mantissa_text_bin_str;
+	const mantissa_text_hex_beg = float_wasm_call_get_mantissa_text_hex_beg(analyzer);
+	const mantissa_text_hex_len = float_wasm_call_get_mantissa_text_hex_len(analyzer);
+	const mantissa_text_hex_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, mantissa_text_hex_beg, mantissa_text_hex_len);
+	const mantissa_text_hex_str = new TextDecoder().decode(mantissa_text_hex_obj);
+	document.getElementById("o_mts_hex").textContent = mantissa_text_hex_str;
+	const mantissa_text_dec_beg = float_wasm_call_get_mantissa_text_dec_beg(analyzer);
+	const mantissa_text_dec_len = float_wasm_call_get_mantissa_text_dec_len(analyzer);
+	const mantissa_text_dec_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, mantissa_text_dec_beg, mantissa_text_dec_len);
+	const mantissa_text_dec_str = new TextDecoder().decode(mantissa_text_dec_obj);
+	document.getElementById("o_mts_dec").textContent = mantissa_text_dec_str;
+	const mantissa_text_dcd_beg = float_wasm_call_get_mantissa_text_dcd_beg(analyzer);
+	const mantissa_text_dcd_len = float_wasm_call_get_mantissa_text_dcd_len(analyzer);
+	const mantissa_text_dcd_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, mantissa_text_dcd_beg, mantissa_text_dcd_len);
+	const mantissa_text_dcd_str = new TextDecoder().decode(mantissa_text_dcd_obj);
+	document.getElementById("o_mts_dcd").textContent = mantissa_text_dcd_str;
+
+	const value_text_beg = float_wasm_call_get_value_text_beg(analyzer);
+	const value_text_len = float_wasm_call_get_value_text_len(analyzer);
+	const value_text_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, value_text_beg, value_text_len);
+	const value_text_str = new TextDecoder().decode(value_text_obj);
+	document.getElementById("o_val").textContent = value_text_str;
 }
 
-function quad_set_events()
+function float_set_events(analyzer)
 {
+	"use strict";
 	const n = 128;
 	for(let i = 0; i != n; ++i)
 	{
 		const id = "bit" + i;
 		const bit = document.getElementById(id);
-		bit.addEventListener("change", function(){ quad_on_changed(bit, i); });
+		bit.addEventListener("change", function(){ float_on_changed(analyzer, bit, i); });
 	}
 }
 
-function quad_trigger_event()
+function float_trigger_event(analyzer)
 {
+	"use strict";
 	const bit = document.getElementById("bit0");
-	quad_on_changed(bit, 0);
+	float_on_changed(analyzer, bit, 0);
 }
 
-function quad_parse_url()
+function float_parse_url(analyzer)
 {
+	"use strict";
 	const f = new URL(window.location.href).hash;
 	if
 	(
 		f.length >= 6 + 1 &&
-		f.length <= 6 + 16 * 2 &&
+		f.length <= 6 + 4 * 2 &&
 		f[0] == '#' &&
 		f[1] == '?' &&
 		f[2] == 'n' &&
@@ -157,33 +388,39 @@ function quad_parse_url()
 			const eid = "bit" + i;
 			const ebit = document.getElementById(eid);
 			ebit.checked = bits_arr[i];
-			quad_on_changed(document.getElementById("bit" + i), i);
+			float_on_changed(analyzer, document.getElementById("bit" + i), i);
 		}
 	}
 }
 
-function quad_on_wasm_loaded(wm)
+function float_on_wasm_loaded(analyzer, wm)
 {
+	"use strict";
 	const wi = wm.instance;
-	g_analyzer.wm = wm;
-	g_analyzer.wi = wi;
-	quad_set_events();
-	quad_trigger_event();
-	quad_parse_url();
+	analyzer.wm = wm;
+	analyzer.wi = wi;
+	float_set_events(analyzer);
+	float_trigger_event(analyzer);
+	float_parse_url(analyzer);
 }
 
-function quad_fetch_wasm()
+function float_fetch_wasm(analyzer)
 {
+	"use strict";
 	const fp = fetch("quad.wasm");
 	const wp = WebAssembly.instantiateStreaming(fp);
-	wp.then(function(wm){ quad_on_wasm_loaded(wm); });
+	wp.then(function(wm){ float_on_wasm_loaded(analyzer, wm); });
 }
 
-function quad_make_checkboxes()
+function float_make_checkboxes(analyzer)
 {
+	"use strict";
+
 	const bits_all = 128;
+	const bits_exp = 15;
 	const bits_mts = 112;
-	const bits_exp = bits_all - 1 - bits_mts;
+
+	console.assert(bits_all == 1 + bits_exp + bits_mts);
 
 	const table_sign = document.getElementById("sign");
 	const row_sign = table_sign.children[0].children[0];
@@ -211,10 +448,11 @@ function quad_make_checkboxes()
 	}
 }
 
-function quad_init()
+function float_init()
 {
-	const n = 16;
-	g_analyzer =
+	"use strict";
+	const n = 128 / 8;
+	let analyzer =
 	{
 		arr: new Array(n),
 		wm: null,
@@ -222,20 +460,23 @@ function quad_init()
 	};
 	for(let i = 0; i != n; ++i)
 	{
-		g_analyzer.arr[i] = 0;
+		analyzer.arr[i] = 0;
 	}
+	return analyzer;
 }
 
-function quad_on_window_loaded()
+function float_on_window_loaded()
 {
-	quad_init();
-	quad_make_checkboxes();
-	quad_fetch_wasm();
+	"use strict";
+	const analyzer = float_init();
+	float_make_checkboxes(analyzer);
+	float_fetch_wasm(analyzer);
 }
 
-function quad_start()
+function float_start()
 {
-	window.addEventListener("load", quad_on_window_loaded);
+	"use strict";
+	window.addEventListener("load", float_on_window_loaded);
 }
 
-quad_start();
+float_start();
