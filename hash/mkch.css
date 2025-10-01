@@ -22,7 +22,8 @@
 
 .monospace
 {
-	font-family:monospace;
 	display:block;
+	font-family:monospace;
+	white-space: pre;
 	word-break:break-all;
 }

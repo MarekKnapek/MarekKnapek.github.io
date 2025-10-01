@@ -1,25 +1,5 @@
 "use strict";
 
-function mkch_app_show_msg(app, msg)
-{
-	"use strict";
-	document.getElementById("msg").textContent = msg;
-}
-
-function mkch_app_show_err_msg(app, msg)
-{
-	"use strict";
-	const message = `Error! ${msg}`;
-	mkch_app_show_msg(app, message);
-}
-
-function mkch_app_show_err_reason(app, reason, msg)
-{
-	"use strict";
-	const message = `Message: ${msg} Reason: ${reason}.`;
-	mkch_app_show_err_msg(app, message);
-}
-
 function mkch_app_wasm_call_generic(app, fnc, arg)
 {
 	"use strict";
@@ -41,74 +21,109 @@ function mkch_app_wasm_call_get_buffer_len(app)
 	return res;
 }
 
-function mkch_app_wasm_call_get_alg_count(app)
+function mkch_app_wasm_call_get_message_buf(app)
 {
 	"use strict";
 	const res = mkch_app_wasm_call_generic(app, 2, 0);
 	return res;
 }
 
-function mkch_app_wasm_call_get_default_alg(app)
+function mkch_app_wasm_call_get_message_len(app)
 {
 	"use strict";
 	const res = mkch_app_wasm_call_generic(app, 3, 0);
 	return res;
 }
 
+function mkch_app_wasm_call_get_alg_count(app)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 4, 0);
+	return res;
+}
+
+function mkch_app_wasm_call_get_default_alg(app)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 5, 0);
+	return res;
+}
+
 function mkch_app_wasm_call_get_alg_str_buf(app, arg)
-{
-	"use strict";
-	const res = mkch_app_wasm_call_generic(app, 4, arg);
-	return res;
-}
-
-function mkch_app_wasm_call_get_alg_str_len(app, arg)
-{
-	"use strict";
-	const res = mkch_app_wasm_call_generic(app, 5, arg);
-	return res;
-}
-
-function mkch_app_wasm_call_get_alg_key_buf(app, arg)
 {
 	"use strict";
 	const res = mkch_app_wasm_call_generic(app, 6, arg);
 	return res;
 }
 
-function mkch_app_wasm_call_get_alg_key_len(app, arg)
+function mkch_app_wasm_call_get_alg_str_len(app, arg)
 {
 	"use strict";
 	const res = mkch_app_wasm_call_generic(app, 7, arg);
 	return res;
 }
 
-function mkch_app_wasm_call_get_digest_len(app, arg)
+function mkch_app_wasm_call_get_alg_key_buf(app, arg)
 {
 	"use strict";
 	const res = mkch_app_wasm_call_generic(app, 8, arg);
 	return res;
 }
 
-function mkch_app_wasm_call_init(app, arg)
+function mkch_app_wasm_call_get_alg_key_len(app, arg)
 {
 	"use strict";
 	const res = mkch_app_wasm_call_generic(app, 9, arg);
 	return res;
 }
 
-function mkch_app_wasm_call_append(app, arg)
+function mkch_app_wasm_call_get_digest_len(app, arg)
 {
 	"use strict";
 	const res = mkch_app_wasm_call_generic(app, 10, arg);
 	return res;
 }
 
-function mkch_app_wasm_call_finish(app, arg)
+function mkch_app_wasm_call_init(app, arg)
 {
 	"use strict";
 	const res = mkch_app_wasm_call_generic(app, 11, arg);
 	return res;
+}
+
+function mkch_app_wasm_call_append(app, arg)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 12, arg);
+	return res;
+}
+
+function mkch_app_wasm_call_finish(app, arg)
+{
+	"use strict";
+	const res = mkch_app_wasm_call_generic(app, 13, arg);
+	return res;
+}
+
+function mkch_app_show_msg(app, msg)
+{
+	"use strict";
+	console.log(`WASM: ${msg}`);
+	document.getElementById("msg").textContent = msg;
+}
+
+function mkch_app_show_err_msg(app, msg)
+{
+	"use strict";
+	const message = `Error! ${msg}`;
+	mkch_app_show_msg(app, message);
+}
+
+function mkch_app_show_err_reason(app, reason, msg)
+{
+	"use strict";
+	const message = `Message: ${msg} Reason: ${reason}.`;
+	mkch_app_show_err_msg(app, message);
 }
 
 function mkch_util_is_integer_non_negative(x)
@@ -185,7 +200,7 @@ function mkch_util_memcpy(dst_buff, dst_off, src_buff, src_off, amount)
 function mkch_app_get_mem(app, off, len)
 {
 	"use strict";
-	const buf = new Uint8Array(app.m_wasm_instance.exports.memory.buffer, off, len);;
+	const buf = new Uint8Array(app.m_wasm_memory.buffer, off, len);;
 	return buf;
 }
 
@@ -196,6 +211,18 @@ function mkch_app_get_buf(app)
 	const len = mkch_app_wasm_call_get_buffer_len(app);
 	const buf = mkch_app_get_mem(app, off, len);
 	return buf;
+}
+
+function mkch_job_get_speed(job)
+{
+	"use strict";
+	console.assert(job.m_app.m_job === job);
+	const app = job.m_app;
+	const speed_ptr = mkch_app_wasm_call_get_message_buf(app);
+	const speed_len = mkch_app_wasm_call_get_message_len(app);
+	const speed_mem = mkch_app_get_mem(app, speed_ptr, speed_len);
+	const speed_str = new TextDecoder().decode(speed_mem);
+	return speed_str;
 }
 
 function mkch_job_progress(job)
@@ -216,7 +243,9 @@ function mkch_job_progress(job)
 	}
 	else
 	{
-		const percent = ((job.m_file_finished * 100.0) / job.m_file_size).toFixed(2) + " %";
+		const speed = mkch_job_get_speed(job);
+		const suffix = (speed.length != 0 ? "    " : "") + speed;
+		const percent = ((job.m_file_finished * 100.0) / job.m_file_size).toFixed(2) + " %" + suffix;
 		document.getElementById("resultb").textContent = percent;
 	}
 }
@@ -704,6 +733,42 @@ function mkch_app_print(app, ptr, len)
 	mkch_app_show_msg(app, str_obj);
 }
 
+function mkch_app_get_now_ms64le(app, uchars64le)
+{
+	"use strict";
+	const now_ts = performance.now();
+	let num = Math.floor(now_ts);
+	const n = 64 / 8;
+	const ptr = mkch_app_get_mem(app, uchars64le, n);
+	for(let i = 0; i != n; ++i)
+	{
+		ptr[i] = num & 0xff;
+		num >>= 8;
+	}
+}
+
+function mkch_app_create_import_object(app)
+{
+	"use strict";
+	const blocks = (2 * 1024 * 1024) / (64 * 1024);
+	const memory = new WebAssembly.Memory({initial: blocks, maximum: blocks, });
+	const stack_ptr = new WebAssembly.Global({value: "i32", mutable: true, }, 1 * 1024 * 1024);
+	const memory_base = new WebAssembly.Global({value: "i32", mutable: false, }, 0);
+	const import_object =
+	{
+		env:
+		{
+			memory: memory,
+			__stack_pointer: stack_ptr,
+			__memory_base: memory_base,
+			js_print: function(str_ptr, str_len){ "use strict"; mkch_app_print(app, str_ptr, str_len); },
+			js_get_now_ms64le: function(uchars64le){ "use strict"; mkch_app_get_now_ms64le(app, uchars64le); },
+		},
+	};
+	app.m_wasm_memory = memory;
+	return import_object;
+}
+
 function mkch_app_on_wasm_fetch_gud(app, response)
 {
 	"use strict";
@@ -724,8 +789,8 @@ function mkch_app_on_wasm_fetch_gud(app, response)
 	const readable_stream_my = new ReadableStream(underlying_source_my);
 	const options_my = { status: response_orig.status, statusText: response_orig.statusText, headers: response_orig.headers, };
 	const response_my = new Response(readable_stream_my, options_my);
-	const imports = { env: { js_debug_print: function(ptr, len){ mkch_app_print(app, ptr, len); }, }, };
-	const result_object_p = WebAssembly.instantiateStreaming(response_my, imports);
+	const import_object = mkch_app_create_import_object(app);
+	const result_object_p = WebAssembly.instantiateStreaming(response_my, import_object);
 	result_object_p.then( function(result_object){ mkch_app_on_wasm_loaded_gud(app, result_object); }, function(reason){ mkch_app_on_wasm_loaded_bad(app, reason); } );
 }
 
@@ -751,6 +816,7 @@ function mkch_g_make_app()
 		m_wasm_bytes: 0,
 		m_wasm_module: null,
 		m_wasm_instance: null,
+		m_wasm_memory: null,
 		m_hash_keys: [],
 		m_job: null,
 		m_continue: mkch_app_continue,
