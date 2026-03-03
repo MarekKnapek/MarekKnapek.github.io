@@ -388,7 +388,6 @@ function float_parse_url(analyzer)
 			const eid = "bit" + i;
 			const ebit = document.getElementById(eid);
 			ebit.checked = bits_arr[i];
-			float_on_changed(analyzer, document.getElementById("bit" + i), i);
 		}
 	}
 }
@@ -480,3 +479,4 @@ function float_start()
 }
 
 float_start();
+
