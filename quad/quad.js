@@ -399,9 +399,9 @@ function float_on_wasm_loaded(analyzer, wm)
 	const wi = wm.instance;
 	analyzer.wm = wm;
 	analyzer.wi = wi;
+	float_parse_url(analyzer);
 	float_set_events(analyzer);
 	float_trigger_event(analyzer);
-	float_parse_url(analyzer);
 }
 
 function float_fetch_wasm(analyzer)
@@ -480,4 +480,3 @@ function float_start()
 }
 
 float_start();
-
