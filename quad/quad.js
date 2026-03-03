@@ -388,6 +388,16 @@ function float_parse_url(analyzer)
 			const eid = "bit" + i;
 			const ebit = document.getElementById(eid);
 			ebit.checked = bits_arr[i];
+			const byte_idx = Math.floor(i / 8);
+			const bit_idx = i % 8;
+			if(bits_arr[i])
+			{
+				analyzer.arr[byte_idx] = analyzer.arr[byte_idx] | (1 << bit_idx);
+			}
+			else
+			{
+				analyzer.arr[byte_idx] = analyzer.arr[byte_idx] &~ (1 << bit_idx);
+			}
 		}
 	}
 }
@@ -479,4 +489,5 @@ function float_start()
 }
 
 float_start();
+
 
