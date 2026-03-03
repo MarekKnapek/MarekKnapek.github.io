@@ -353,7 +353,7 @@ function float_parse_url(analyzer)
 	if
 	(
 		f.length >= 6 + 1 &&
-		f.length <= 6 + 4 * 2 &&
+		f.length <= 6 + (128 / 8) * 2 &&
 		f[0] == '#' &&
 		f[1] == '?' &&
 		f[2] == 'n' &&
@@ -480,3 +480,4 @@ function float_start()
 }
 
 float_start();
+
