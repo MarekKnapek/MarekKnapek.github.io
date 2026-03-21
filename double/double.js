@@ -353,7 +353,7 @@ function float_parse_url(analyzer)
 	if
 	(
 		f.length >= 6 + 1 &&
-		f.length <= 6 + 4 * 2 &&
+		f.length <= 6 + (64 / 8) * 2 &&
 		f[0] == '#' &&
 		f[1] == '?' &&
 		f[2] == 'n' &&
@@ -388,7 +388,16 @@ function float_parse_url(analyzer)
 			const eid = "bit" + i;
 			const ebit = document.getElementById(eid);
 			ebit.checked = bits_arr[i];
-			float_on_changed(analyzer, document.getElementById("bit" + i), i);
+			const byte_idx = Math.floor(i / 8);
+			const bit_idx = i % 8;
+			if(bits_arr[i])
+			{
+				analyzer.arr[byte_idx] = analyzer.arr[byte_idx] | (1 << bit_idx);
+			}
+			else
+			{
+				analyzer.arr[byte_idx] = analyzer.arr[byte_idx] &~ (1 << bit_idx);
+			}
 		}
 	}
 }
@@ -399,9 +408,9 @@ function float_on_wasm_loaded(analyzer, wm)
 	const wi = wm.instance;
 	analyzer.wm = wm;
 	analyzer.wi = wi;
+	float_parse_url(analyzer);
 	float_set_events(analyzer);
 	float_trigger_event(analyzer);
-	float_parse_url(analyzer);
 }
 
 function float_fetch_wasm(analyzer)

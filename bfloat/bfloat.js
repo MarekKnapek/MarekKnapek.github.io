@@ -233,7 +233,7 @@ function float_on_changed(analyzer, bit, idx)
 	const target_buf = float_wasm_call_get_buffer_buf(analyzer);
 	const target_len = float_wasm_call_get_buffer_len(analyzer);
 	const target_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, target_buf, target_len);
-	const n = 128 / 8;
+	const n = 16 / 8;
 	for(let i = 0; i != n; ++i)
 	{
 		target_obj[i] = analyzer.arr[i];
@@ -330,7 +330,7 @@ function float_on_changed(analyzer, bit, idx)
 function float_set_events(analyzer)
 {
 	"use strict";
-	const n = 128;
+	const n = 16;
 	for(let i = 0; i != n; ++i)
 	{
 		const id = "bit" + i;
@@ -353,7 +353,7 @@ function float_parse_url(analyzer)
 	if
 	(
 		f.length >= 6 + 1 &&
-		f.length <= 6 + (128 / 8) * 2 &&
+		f.length <= 6 + (16 / 8) * 2 &&
 		f[0] == '#' &&
 		f[1] == '?' &&
 		f[2] == 'n' &&
@@ -364,7 +364,7 @@ function float_parse_url(analyzer)
 	)
 	{
 		const symbols = "0123456789abcdef";
-		let bits_arr = Array(128);
+		let bits_arr = Array(16);
 		let bits_cnt = 0;
 		const h = f.substring(6, f.length).toLowerCase();
 		const n = h.length;
@@ -416,7 +416,7 @@ function float_on_wasm_loaded(analyzer, wm)
 function float_fetch_wasm(analyzer)
 {
 	"use strict";
-	const fp = fetch("quad.wasm");
+	const fp = fetch("bfloat.wasm");
 	const wp = WebAssembly.instantiateStreaming(fp);
 	wp.then(function(wm){ float_on_wasm_loaded(analyzer, wm); });
 }
@@ -425,9 +425,9 @@ function float_make_checkboxes(analyzer)
 {
 	"use strict";
 
-	const bits_all = 128;
-	const bits_exp = 15;
-	const bits_mts = 112;
+	const bits_all = 16;
+	const bits_exp = 8;
+	const bits_mts = 7;
 
 	console.assert(bits_all == 1 + bits_exp + bits_mts);
 
@@ -460,7 +460,7 @@ function float_make_checkboxes(analyzer)
 function float_init()
 {
 	"use strict";
-	const n = 128 / 8;
+	const n = 16 / 8;
 	let analyzer =
 	{
 		arr: new Array(n),
