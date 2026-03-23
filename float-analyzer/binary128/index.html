@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" type="text/css" href="float.css">
+		<script src="float.js"></script>
+		<title>Float Analyzer - binary128</title>
+	</head>
+	<body>
+		<span>Float Analyzer - binary128</span>
+		<br>
+		<br>
+		<a href="..">back</a>
+		<br>
+		<br>
+		<form id="form">
+			<table class="outer">
+				<tr>
+					<th>
+						<span>Sign</span>
+					</th>
+					<th>
+						<span>Exponent</span>
+					</th>
+					<th>
+						<span>Mantissa</span>
+					</th>
+				</tr>
+				<tr>
+					<td>
+						<table id="sign" class="inner">
+							<tr/>
+						</table>
+					</td>
+					<td>
+						<table id="exp" class="inner">
+							<tr/>
+						</table>
+					</td>
+					<td>
+						<table id="mts" class="inner">
+							<tr/>
+						</table>
+					</td>
+				</tr>
+			</table>
+		</form>
+		<br>
+		<br>
+		<table class="output">
+			<tr>
+				<td>
+					<span>Bin</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_bin"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Hex</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_hex"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Dec&nbsp;unsigned</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_dec"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Dec&nbsp;signed</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_sgn"></span>
+				</td>
+			</tr>
+			<tr class="newsection">
+				<td>
+					<span>Sign</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_sign"></span>
+				</td>
+			</tr>
+			<tr class="newsection">
+				<td>
+					<span>Exponent&nbsp;bin</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_exp_bin"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Exponent&nbsp;hex</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_exp_hex"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Exponent&nbsp;dec</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_exp_dec"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Exponent&nbsp;decoded</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_exp_dcd"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Type</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_type"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Implied&nbsp;one</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_one"></span>
+				</td>
+			</tr>
+			<tr class="newsection">
+				<td>
+					<span>Mantissa&nbsp;bin</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_mts_bin"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Mantissa&nbsp;hex</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_mts_hex"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Mantissa&nbsp;dec</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_mts_dec"></span>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<span>Mantissa&nbsp;decoded</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_mts_dcd"></span>
+				</td>
+			</tr>
+			<tr class="newsection">
+				<td>
+					<span>Value</span>
+				</td>
+				<td class="right">
+					<span class="monospace" id="o_val"></span>
+				</td>
+			</tr>
+		</table>
+		<br>
+		<br>
+		<a href="#?n=0x80000000000000000000000000000000">negative zero</a><br>
+		<a href="#?n=0x00000000000000000000000000000000">positive zero</a><br>
+		<a href="#?n=0x00000000000000000000000000000001">smallest positive subnormal number</a><br>
+		<a href="#?n=0x0000ffffffffffffffffffffffffffff">largest subnormal number</a><br>
+		<a href="#?n=0x00010000000000000000000000000000">smallest positive normal number</a><br>
+		<a href="#?n=0x3ffb999999999999999999999999999a">nearest number to 0.1</a><br>
+		<a href="#?n=0x3ffd5555555555555555555555555555">nearest number to 1/3</a><br>
+		<a href="#?n=0x3ffeffffffffffffffffffffffffffff">largest number less than one</a><br>
+		<a href="#?n=0x3fff0000000000000000000000000000">one</a><br>
+		<a href="#?n=0x3fff0000000000000000000000000001">smallest number larger than one</a><br>
+		<a href="#?n=0x4000921fb54442d18469898cc51701b8">nearest number to &pi;</a><br>
+		<a href="#?n=0x406fffffffffffffffffffffffffffff">largest odd number</a><br>
+		<a href="#?n=0x7ffeffffffffffffffffffffffffffff">largest normal number</a><br>
+		<a href="#?n=0x7fff0000000000000000000000000000">positive infinity</a><br>
+		<br>
+		<br>
+		<span>source code available at <a href="https://github.com/marekknapek/mk_clib">github.com/marekknapek/mk_clib</a> and at <a href="https://github.com/marekknapek/marekknapek.github.io">github.com/marekknapek/marekknapek.github.io</a>.</span>
+	</body>
+</html>

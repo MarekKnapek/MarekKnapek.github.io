@@ -1,6 +1,5 @@
 "use strict";
 
-
 function float_wasm_call_generic(analyzer, fn_id, arg)
 {
 	"use strict";
@@ -217,23 +216,34 @@ function float_wasm_call_get_value_text_len(analyzer)
 	return float_wasm_call_generic(analyzer, 34, 0);
 }
 
-function float_on_changed(analyzer, bit, idx)
+function float_gather_all(analyzer)
 {
 	"use strict";
-	const byte_idx = Math.floor(idx / 8);
-	const bit_idx = idx % 8;
-	if(bit.checked)
+	for(let i = 0; i != 128; ++i)
 	{
-		analyzer.arr[byte_idx] = analyzer.arr[byte_idx] | (1 << bit_idx);
+		const bit_id_str = "bit" + i;
+		const bit_elem = document.getElementById(bit_id_str);
+		const byte_idx = Math.floor(i / 8);
+		const bit_idx = i % 8;
+		if(bit_elem.checked)
+		{
+			analyzer.arr[byte_idx] = analyzer.arr[byte_idx] | (1 << bit_idx);
+		}
+		else
+		{
+			analyzer.arr[byte_idx] = analyzer.arr[byte_idx] &~ (1 << bit_idx);
+		}
 	}
-	else
-	{
-		analyzer.arr[byte_idx] = analyzer.arr[byte_idx] &~ (1 << bit_idx);
-	}
+}
+
+function float_recompute(analyzer)
+{
+	"use strict";
+	float_gather_all(analyzer);
 	const target_buf = float_wasm_call_get_buffer_buf(analyzer);
 	const target_len = float_wasm_call_get_buffer_len(analyzer);
 	const target_obj = new Uint8Array(analyzer.wi.exports.memory.buffer, target_buf, target_len);
-	const n = 16 / 8;
+	const n = 128 / 8;
 	for(let i = 0; i != n; ++i)
 	{
 		target_obj[i] = analyzer.arr[i];
@@ -327,25 +337,6 @@ function float_on_changed(analyzer, bit, idx)
 	document.getElementById("o_val").textContent = value_text_str;
 }
 
-function float_set_events(analyzer)
-{
-	"use strict";
-	const n = 16;
-	for(let i = 0; i != n; ++i)
-	{
-		const id = "bit" + i;
-		const bit = document.getElementById(id);
-		bit.addEventListener("change", function(){ float_on_changed(analyzer, bit, i); });
-	}
-}
-
-function float_trigger_event(analyzer)
-{
-	"use strict";
-	const bit = document.getElementById("bit0");
-	float_on_changed(analyzer, bit, 0);
-}
-
 function float_parse_url(analyzer)
 {
 	"use strict";
@@ -353,7 +344,7 @@ function float_parse_url(analyzer)
 	if
 	(
 		f.length >= 6 + 1 &&
-		f.length <= 6 + (16 / 8) * 2 &&
+		f.length <= 6 + (128 / 8) * 2 &&
 		f[0] == '#' &&
 		f[1] == '?' &&
 		f[2] == 'n' &&
@@ -364,7 +355,7 @@ function float_parse_url(analyzer)
 	)
 	{
 		const symbols = "0123456789abcdef";
-		let bits_arr = Array(16);
+		let bits_arr = Array(128);
 		let bits_cnt = 0;
 		const h = f.substring(6, f.length).toLowerCase();
 		const n = h.length;
@@ -402,6 +393,35 @@ function float_parse_url(analyzer)
 	}
 }
 
+function float_on_hash_change(analyzer, event)
+{
+	"use strict";
+	float_parse_url(analyzer);
+	float_recompute(analyzer);
+}
+
+function float_on_change(analyzer, event)
+{
+	"use strict";
+	float_recompute(analyzer);
+	const hash = document.getElementById("o_hex").textContent;
+	const str = "#?n=0x" + hash;
+	window.location.hash = str;
+}
+
+function float_set_events(analyzer)
+{
+	"use strict";
+	const n = 128;
+	for(let i = 0; i != n; ++i)
+	{
+		const id = "bit" + i;
+		const bit = document.getElementById(id);
+		bit.addEventListener("change", function(){ "use strict"; float_on_change(analyzer); });
+	}
+	window.addEventListener("hashchange", function(event){ "use strict"; float_on_hash_change(analyzer, event); });
+}
+
 function float_on_wasm_loaded(analyzer, wm)
 {
 	"use strict";
@@ -410,24 +430,24 @@ function float_on_wasm_loaded(analyzer, wm)
 	analyzer.wi = wi;
 	float_parse_url(analyzer);
 	float_set_events(analyzer);
-	float_trigger_event(analyzer);
+	float_recompute(analyzer);
 }
 
 function float_fetch_wasm(analyzer)
 {
 	"use strict";
-	const fp = fetch("bfloat.wasm");
+	const fp = fetch("float.wasm");
 	const wp = WebAssembly.instantiateStreaming(fp);
-	wp.then(function(wm){ float_on_wasm_loaded(analyzer, wm); });
+	wp.then(function(wm){ "use strict"; float_on_wasm_loaded(analyzer, wm); });
 }
 
 function float_make_checkboxes(analyzer)
 {
 	"use strict";
 
-	const bits_all = 16;
-	const bits_exp = 8;
-	const bits_mts = 7;
+	const bits_all = 128;
+	const bits_exp = 15;
+	const bits_mts = 112;
 
 	console.assert(bits_all == 1 + bits_exp + bits_mts);
 
@@ -460,7 +480,7 @@ function float_make_checkboxes(analyzer)
 function float_init()
 {
 	"use strict";
-	const n = 16 / 8;
+	const n = 128 / 8;
 	let analyzer =
 	{
 		arr: new Array(n),
